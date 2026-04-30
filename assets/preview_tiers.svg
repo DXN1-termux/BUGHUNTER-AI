@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500">
+  <style>
+    text { font-family: "SF Mono","JetBrains Mono",monospace; fill: #c0caf5; }
+    .bg { fill: #1a1b26; }
+    .title { font-weight: bold; font-size: 16px; }
+    .heading { font-weight: bold; font-size: 14px; }
+    .sub { font-size: 11px; fill: #a9b1d6; }
+    .mobile-c { fill: #7aa2f7; }
+    .desktop-c { fill: #bb9af7; }
+    .work-c { fill: #9ece6a; }
+    @keyframes riseMobile { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes riseDesk { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes riseWork { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    .bar-mobile { transform-origin: bottom; animation: riseMobile 1s ease 0.3s both; }
+    .bar-desk { transform-origin: bottom; animation: riseDesk 1s ease 0.8s both; }
+    .bar-work { transform-origin: bottom; animation: riseWork 1s ease 1.3s both; }
+  </style>
+
+  <rect class="bg" width="900" height="500" rx="10"/>
+
+  <text x="450" y="40" class="title" text-anchor="middle" font-size="22">⚡ 3-tier auto-detection</text>
+  <text x="450" y="62" class="sub" text-anchor="middle" font-size="12">One model · Three quants · Auto-picked by device</text>
+
+  <!-- Mobile tier card -->
+  <g transform="translate(50, 100)">
+    <rect width="250" height="340" rx="12" fill="#7aa2f7" fill-opacity="0.1" stroke="#7aa2f7" stroke-width="2"/>
+    <text x="125" y="35" class="heading" text-anchor="middle" fill="#7aa2f7" font-size="18">📱 Mobile</text>
+    <text x="125" y="58" class="sub" text-anchor="middle">Samsung A52 · Pixel · Pi</text>
+
+    <text x="20" y="95" class="sub" fill="#565f89">MODEL</text>
+    <text x="20" y="115" class="heading" fill="#c0caf5">IQ2_XS</text>
+
+    <text x="20" y="145" class="sub" fill="#565f89">SIZE</text>
+    <text x="20" y="165" class="heading" fill="#c0caf5">~300 MB</text>
+
+    <text x="20" y="195" class="sub" fill="#565f89">RAM NEEDED</text>
+    <text x="20" y="215" class="heading" fill="#c0caf5">350 MB</text>
+
+    <text x="20" y="245" class="sub" fill="#565f89">SPEED</text>
+    <text x="20" y="265" class="heading" fill="#c0caf5">20–55 tok/s</text>
+
+    <text x="20" y="295" class="sub" fill="#565f89">CONTEXT</text>
+    <text x="20" y="315" class="heading" fill="#c0caf5">1,536 tokens</text>
+  </g>
+
+  <!-- Desktop tier card -->
+  <g transform="translate(325, 100)">
+    <rect width="250" height="340" rx="12" fill="#bb9af7" fill-opacity="0.1" stroke="#bb9af7" stroke-width="2"/>
+    <text x="125" y="35" class="heading" text-anchor="middle" fill="#bb9af7" font-size="18">💻 Desktop</text>
+    <text x="125" y="58" class="sub" text-anchor="middle">Laptop · MacBook Air · PC</text>
+
+    <text x="20" y="95" class="sub" fill="#565f89">MODEL</text>
+    <text x="20" y="115" class="heading" fill="#c0caf5">Q4_K_M</text>
+
+    <text x="20" y="145" class="sub" fill="#565f89">SIZE</text>
+    <text x="20" y="165" class="heading" fill="#c0caf5">~1 GB</text>
+
+    <text x="20" y="195" class="sub" fill="#565f89">RAM NEEDED</text>
+    <text x="20" y="215" class="heading" fill="#c0caf5">4 GB</text>
+
+    <text x="20" y="245" class="sub" fill="#565f89">SPEED</text>
+    <text x="20" y="265" class="heading" fill="#c0caf5">30–90 tok/s</text>
+
+    <text x="20" y="295" class="sub" fill="#565f89">CONTEXT</text>
+    <text x="20" y="315" class="heading" fill="#c0caf5">4,096 tokens</text>
+  </g>
+
+  <!-- Workstation tier card -->
+  <g transform="translate(600, 100)">
+    <rect width="250" height="340" rx="12" fill="#9ece6a" fill-opacity="0.1" stroke="#9ece6a" stroke-width="2"/>
+    <text x="125" y="35" class="heading" text-anchor="middle" fill="#9ece6a" font-size="18">🖥️ Workstation</text>
+    <text x="125" y="58" class="sub" text-anchor="middle">GPU · M3 Pro · RTX</text>
+
+    <text x="20" y="95" class="sub" fill="#565f89">MODEL</text>
+    <text x="20" y="115" class="heading" fill="#c0caf5">Q6_K</text>
+
+    <text x="20" y="145" class="sub" fill="#565f89">SIZE</text>
+    <text x="20" y="165" class="heading" fill="#c0caf5">~4 GB</text>
+
+    <text x="20" y="195" class="sub" fill="#565f89">RAM NEEDED</text>
+    <text x="20" y="215" class="heading" fill="#c0caf5">12 GB</text>
+
+    <text x="20" y="245" class="sub" fill="#565f89">SPEED</text>
+    <text x="20" y="265" class="heading" fill="#c0caf5">100–300 tok/s</text>
+
+    <text x="20" y="295" class="sub" fill="#565f89">CONTEXT</text>
+    <text x="20" y="315" class="heading" fill="#c0caf5">8,192 tokens</text>
+  </g>
+
+  <text x="450" y="475" class="sub" text-anchor="middle" fill="#565f89" font-size="11">
+    Device tier detected via RAM, GPU presence, Termux/iOS env · config.toml overrideable
+  </text>
+</svg>

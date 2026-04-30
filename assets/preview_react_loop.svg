@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <style>
+    text { font-family: "SF Mono","JetBrains Mono",monospace; fill: #c0caf5; }
+    .bg { fill: #1a1b26; }
+    .title { font-weight: bold; font-size: 20px; }
+    .label { font-size: 13px; font-weight: bold; }
+    .sub { font-size: 10px; fill: #a9b1d6; }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes dash { to { stroke-dashoffset: -20; } }
+    @keyframes pulse { 0%,100% { r: 8; opacity: 1 } 50% { r: 12; opacity: 0.5 } }
+    .orbit { animation: rotate 12s linear infinite; transform-origin: 400px 300px; }
+    .flow { stroke-dasharray: 8 4; animation: dash 1s linear infinite; }
+    .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
+  </style>
+
+  <rect class="bg" width="800" height="600" rx="10"/>
+
+  <text x="400" y="40" class="title" text-anchor="middle">🔁 The ReAct Loop</text>
+  <text x="400" y="62" class="sub" text-anchor="middle" font-size="12">How the agent thinks → acts → observes → repeats</text>
+
+  <!-- Central user node -->
+  <circle cx="400" cy="300" r="55" fill="#414868" stroke="#7aa2f7" stroke-width="3"/>
+  <text x="400" y="295" class="label" text-anchor="middle" fill="#7aa2f7" font-size="14">🧑 USER</text>
+  <text x="400" y="315" class="sub" text-anchor="middle">your prompt</text>
+
+  <!-- Orbit group -->
+  <g>
+    <!-- Step 1: THOUGHT (top) -->
+    <circle cx="400" cy="130" r="55" fill="#bb9af7" fill-opacity="0.15" stroke="#bb9af7" stroke-width="2"/>
+    <text x="400" y="125" class="label" text-anchor="middle" fill="#bb9af7">💭 THOUGHT</text>
+    <text x="400" y="145" class="sub" text-anchor="middle">plan next step</text>
+
+    <!-- Step 2: TOOL_CALL (right) -->
+    <circle cx="600" cy="250" r="55" fill="#7dcfff" fill-opacity="0.15" stroke="#7dcfff" stroke-width="2"/>
+    <text x="600" y="245" class="label" text-anchor="middle" fill="#7dcfff">🔧 TOOL CALL</text>
+    <text x="600" y="265" class="sub" text-anchor="middle">shell, nmap, fetch</text>
+
+    <!-- Step 3: SAFETY (bottom-right) -->
+    <circle cx="600" cy="400" r="55" fill="#f7768e" fill-opacity="0.15" stroke="#f7768e" stroke-width="2"/>
+    <text x="600" y="395" class="label" text-anchor="middle" fill="#f7768e">🔒 SAFETY</text>
+    <text x="600" y="413" class="sub" text-anchor="middle">6-layer check</text>
+
+    <!-- Step 4: RESULT (bottom-left) -->
+    <circle cx="200" cy="400" r="55" fill="#9ece6a" fill-opacity="0.15" stroke="#9ece6a" stroke-width="2"/>
+    <text x="200" y="395" class="label" text-anchor="middle" fill="#9ece6a">📋 RESULT</text>
+    <text x="200" y="413" class="sub" text-anchor="middle">tool output</text>
+
+    <!-- Step 5: REFLECT (left) -->
+    <circle cx="200" cy="250" r="55" fill="#e0af68" fill-opacity="0.15" stroke="#e0af68" stroke-width="2"/>
+    <text x="200" y="245" class="label" text-anchor="middle" fill="#e0af68">🔍 REFLECT</text>
+    <text x="200" y="265" class="sub" text-anchor="middle">self-critique</text>
+  </g>
+
+  <!-- Flow arrows (counterclockwise from THOUGHT → TOOL → SAFETY → RESULT → REFLECT → THOUGHT) -->
+  <path class="flow" d="M 455 130 Q 570 140 585 200" stroke="#bb9af7" stroke-width="2" fill="none" marker-end="url(#a)"/>
+  <path class="flow" d="M 600 305 L 600 345" stroke="#7dcfff" stroke-width="2" fill="none" marker-end="url(#a)"/>
+  <path class="flow" d="M 545 400 L 255 400" stroke="#f7768e" stroke-width="2" fill="none" marker-end="url(#a)"/>
+  <path class="flow" d="M 200 345 L 200 305" stroke="#9ece6a" stroke-width="2" fill="none" marker-end="url(#a)"/>
+  <path class="flow" d="M 215 200 Q 230 140 345 130" stroke="#e0af68" stroke-width="2" fill="none" marker-end="url(#a)"/>
+
+  <!-- Connection to user -->
+  <line x1="400" y1="185" x2="400" y2="245" stroke="#565f89" stroke-width="1" stroke-dasharray="3 3"/>
+
+  <!-- Final output arrow -->
+  <path d="M 470 280 Q 520 300 530 340" stroke="#9ece6a" stroke-width="2" fill="none" stroke-dasharray="3 3"/>
+
+  <!-- Bottom explanation -->
+  <rect x="50" y="490" width="700" height="90" rx="8" fill="#24283b" stroke="#414868"/>
+  <text x="70" y="515" class="label" fill="#7dcfff">Loop exits when:</text>
+  <text x="70" y="535" class="sub" font-size="11">• model emits &lt;final&gt;...&lt;/final&gt; → answer returned to user</text>
+  <text x="70" y="552" class="sub" font-size="11">• max_turns reached (default 20)</text>
+  <text x="70" y="569" class="sub" font-size="11">• rate limiter detects loop (same tool_call 3× within window)</text>
+  <text x="480" y="535" class="sub" font-size="11" fill="#f7768e">• hard block triggers → instant halt</text>
+  <text x="480" y="552" class="sub" font-size="11" fill="#f7768e">• FREEZE switch active → all tools halt</text>
+  <text x="480" y="569" class="sub" font-size="11" fill="#f7768e">• scope violation → out-of-scope error</text>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a9b1d6"/>
+    </marker>
+  </defs>
+</svg>
