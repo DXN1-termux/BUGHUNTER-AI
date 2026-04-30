@@ -41,7 +41,7 @@ This Code of Conduct applies within all community spaces (GitHub repo, discussio
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer:
 
-- GitHub: [@DXN10DAY](https://github.com/DXN10DAY)
+- GitHub: [@DXN1-TERMUX](https://github.com/DXN1-TERMUX)
 - WhatsApp (business): [+31 6 39420421](https://wa.me/31639420421)
 
 All complaints will be reviewed and investigated promptly and fairly. All maintainers are obligated to respect the privacy and security of the reporter of any incident.
