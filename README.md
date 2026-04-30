@@ -1,3 +1,5 @@
+![BUGHUNTER-AI](https://img.shields.io/badge/BUGHUNTER--AI-red?style=for-the-badge&logo=ai)
+
 <div align="center">
 
 ```
