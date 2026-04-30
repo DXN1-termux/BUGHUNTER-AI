@@ -1,0 +1,73 @@
+# IMMUTABLE hard-block categories. chmod 444 post-install.
+# Enforced by core/executor_guards.py::check_hard_blocks() on every
+# user prompt AND every model output BEFORE any tool executes.
+#
+# These cannot be disabled by config, prompt, self-edit, or --yolo.
+
+version: 1
+
+categories:
+  terrorism:
+    description: "Planning, facilitation, or glorification of terrorism / mass-casualty attacks."
+    patterns:
+      - "(?i)\\b(mass\\s*shooting|school\\s*shoot|bombing\\s*plan|attack\\s*plan)\\b"
+      - "(?i)\\b(how\\s+to\\s+)(bomb|attack|kill\\s+(many|lots|a\\s+crowd))\\b"
+      - "(?i)\\b(isis|al[- ]?qaeda|recruit.*jihad)\\b.*\\b(join|help|plan)\\b"
+  cbrn:
+    description: "Chemical, biological, radiological, nuclear weapon synthesis or acquisition."
+    patterns:
+      - "(?i)\\b(synthes|manufactur|mak(e|ing)|produc|cook)\\b.*\\b(sarin|vx|novichok|anthrax|ricin|botulinum|mustard\\s*gas|chlorine\\s*gas|phosgene)\\b"
+      - "(?i)\\b(enrich|weaponize)\\b.*\\b(uranium|plutonium)\\b"
+      - "(?i)\\b(dirty\\s*bomb|nerve\\s*agent|bioweapon)\\b.*\\b(build|make|create|synthes)\\b"
+  csam:
+    description: "Sexual content involving minors — any form, any angle, zero tolerance."
+    patterns:
+      # Core: minor + sexual context (any proximity)
+      - "(?i)\\b(child|children|minor|minors|underage|under[- ]?age|under[\\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\\s+(girl|boy)|little\\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\\b.{0,100}\\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip)\\b"
+      - "(?i)\\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip)\\b.{0,100}\\b(child|children|minor|minors|underage|under[- ]?age|under[\\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\\s+(girl|boy)|little\\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\\b"
+      # Explicit terms & euphemisms / codewords — distribution codewords only.
+      # The acronyms "csam" / "csem" / "cp" / "child porn" themselves are
+      # handled by the smart context-aware check in executor_guards.py so
+      # that educational/defensive mentions like "what does CSAM mean" or
+      # "write a regex to detect CSAM" are allowed, while harmful intent
+      # like "generate CSAM" is still blocked.
+      - "(?i)\\b(loli(con)?|shota(con)?|jailbait|cub\\s*porn|pedo(phil(e|ia)?|bear)?|hebephil|ephebophil|mapt|nomap|map\\s+community|kiddie\\s*porn|kid\\s*porn)\\b"
+      # Age-explicit numeric patterns (under 18)
+      - "(?i)\\b(1[0-7]|[0-9])[\\s-]?(y(ear)?s?[\\s-]?o(ld)?|yo)\\b.{0,60}\\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate)\\b"
+      - "(?i)\\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate)\\b.{0,60}\\b(1[0-7]|[0-9])[\\s-]?(y(ear)?s?[\\s-]?o(ld)?|yo)\\b"
+      # Solicitation / grooming language directed at minors
+      - "(?i)\\b(groom|seduce|lure|entice|coerce|blackmail|sextort)\\b.{0,80}\\b(child|minor|kid|teen|underage|young)\\b"
+      # Image/media generation requests involving minors
+      - "(?i)\\b(generate|create|draw|render|produce|make)\\b.{0,40}\\b(image|picture|photo|video|art|drawing)\\b.{0,80}\\b(child|minor|kid|underage|young\\s+(girl|boy)|little\\s+(girl|boy)|teen)\\b.{0,80}\\b(nude|naked|sexual|explicit|erotic|nsfw)\\b"
+      - "(?i)\\b(nude|naked|sexual|explicit|erotic|nsfw)\\b.{0,80}\\b(child|minor|kid|underage|young\\s+(girl|boy)|little\\s+(girl|boy)|teen)\\b.{0,80}\\b(image|picture|photo|video|art|drawing)\\b"
+      # AI-specific generation requests
+      - "(?i)\\b(deepfake|ai[\\s-]?generated|stable\\s*diffusion|dalle?|midjourney|flux)\\b.{0,80}\\b(child|minor|kid|underage|teen)\\b.{0,80}\\b(nude|naked|sex|explicit|nsfw)\\b"
+      # Known CSAM distribution terms
+      - "(?i)\\b(hurtcore|pthc|ptsc|r@ygold|raygold|kinderporn)\\b"
+  mass_harm:
+    description: "Content whose primary purpose is enabling harm at scale."
+    patterns:
+      - "(?i)\\b(poison\\s+(water|food)\\s+supply|contaminat\\w+\\s+(water|reservoir|crops))\\b"
+      - "(?i)\\b(release\\s+pathogen|spread\\s+disease\\s+deliberately)\\b"
+  sexual_content:
+    description: "General sexual / pornographic / erotic content generation. This agent is for authorized security research, not NSFW. CSAM is a separate, stricter category (see above)."
+    patterns:
+      # Requests to generate erotic / pornographic text
+      - "(?i)\\b(write|generate|create|produce|compose|draft|make|author)\\b.{0,80}\\b(erotic|pornograph|nsfw|sexual|sex\\s+scene|intimate\\s+scene|explicit\\s+(scene|content|story))\\b"
+      - "(?i)\\b(erotic|pornograph|nsfw|smut|hentai)\\b.{0,50}\\b(story|scene|fiction|roleplay|chat|fantasy|content)\\b"
+      # Explicit fantasy/roleplay requests
+      - "(?i)\\b(sexual|erotic|romantic|intimate|sensual)\\s+roleplay\\b"
+      - "(?i)\\b(be|act\\s+as|roleplay\\s+as|pretend\\s+to\\s+be)\\b.{0,80}\\b(girlfriend|boyfriend|dominatrix|submissive|slut|whore)\\b"
+      # Image generation requests
+      - "(?i)\\b(generate|create|draw|render|produce|make)\\b.{0,40}\\b(nude|naked|porn|nsfw|erotic|explicit|topless)\\b.{0,80}\\b(image|picture|photo|video|art|drawing)\\b"
+      - "(?i)\\b(image|picture|photo|video|art|drawing)\\b.{0,40}\\b(of|with|showing)\\b.{0,40}\\b(nude|naked|porn|nsfw|erotic|topless)\\b"
+      # Explicit descriptive requests
+      - "(?i)\\b(describe|depict|narrate|write\\s+about)\\b.{0,80}\\b(sex\\s+act|sexual\\s+intercourse|penetration|orgasm|masturbat)\\b"
+      # Common slang for explicit adult content generation
+      - "(?i)\\b(generate|write|create)\\b.{0,40}\\b(rule[\\s-]?34|r34|hentai|doujin)\\b"
+
+# When a match is detected, executor_guards raises HardBlockError with the
+# category name. The CLI logs to ~/.slm/traces/hardblock.log (append-only,
+# integrity-checked) and returns a brief refusal to the user.
+
+audit_log: "~/.slm/traces/hardblock.log"

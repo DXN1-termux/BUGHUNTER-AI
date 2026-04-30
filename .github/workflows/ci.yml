@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check . || true
+      - name: Format advisory
+        run: ruff format --check . || echo "::warning::code is not ruff-formatted — run 'ruff format .' locally"
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - run: pytest --tb=short -q
+
+  safety:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Verify hard blocks load
+        run: python -c "from slm.core.executor_guards import check_hard_blocks; print('OK')"
+      - name: Verify scope enforcer loads
+        run: python -c "from slm.core.scope_enforcer import check_target; print('OK')"
+      - name: Verify shell denylist catches rm -rf /
+        run: |
+          python -c "
+          from slm.core.executor_guards import check_shell
+          try:
+              check_shell('rm -rf /')
+              exit(1)
+          except PermissionError:
+              print('PASS: rm -rf / blocked')
+          "

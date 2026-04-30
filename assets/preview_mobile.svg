@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="400" height="800">
+  <defs>
+    <linearGradient id="phoneBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a2a"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <linearGradient id="screenGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a1b26"/>
+      <stop offset="100%" stop-color="#24283b"/>
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } }
+    .code { font: 9px "SF Mono",monospace; fill: #c0caf5; }
+    .prompt { fill: #7aa2f7; font-weight: bold; }
+    .green { fill: #9ece6a; }
+    .cyan { fill: #7dcfff; }
+    .dim { fill: #565f89; }
+    .red { fill: #f7768e; }
+    .yellow { fill: #e0af68; }
+    .magenta { fill: #bb9af7; }
+    .l1 { animation: fadeIn 0.2s ease 0.3s both; }
+    .l2 { animation: fadeIn 0.2s ease 0.8s both; }
+    .l3 { animation: fadeIn 0.2s ease 1.3s both; }
+    .l4 { animation: fadeIn 0.2s ease 1.8s both; }
+    .l5 { animation: fadeIn 0.2s ease 2.3s both; }
+    .l6 { animation: fadeIn 0.2s ease 2.8s both; }
+    .l7 { animation: fadeIn 0.2s ease 3.3s both; }
+    .l8 { animation: fadeIn 0.2s ease 3.8s both; }
+    .l9 { animation: fadeIn 0.2s ease 4.3s both; }
+    .cursor { animation: blink 1s step-end infinite; }
+  </style>
+
+  <!-- Phone body -->
+  <rect x="10" y="10" width="380" height="780" rx="45" fill="url(#phoneBody)" stroke="#1a1a1a" stroke-width="2"/>
+  <rect x="20" y="20" width="360" height="760" rx="35" fill="#000"/>
+
+  <!-- Notch -->
+  <rect x="150" y="25" width="100" height="22" rx="11" fill="#000" stroke="#111" stroke-width="1"/>
+  <circle cx="225" cy="36" r="4" fill="#1a1a1a"/>
+
+  <!-- Status bar -->
+  <text x="40" y="65" font-family="SF Mono,monospace" font-size="11" fill="#a9b1d6" font-weight="bold">9:41</text>
+  <text x="330" y="65" font-family="SF Mono,monospace" font-size="11" fill="#a9b1d6">🔋 84%</text>
+
+  <!-- Screen content (terminal) -->
+  <rect x="25" y="80" width="350" height="680" rx="20" fill="url(#screenGradient)"/>
+
+  <!-- Terminal header -->
+  <rect x="25" y="80" width="350" height="30" rx="20" fill="#24283b"/>
+  <rect x="25" y="100" width="350" height="10" fill="#24283b"/>
+  <text x="40" y="100" font-family="SF Mono,monospace" font-size="10" fill="#7dcfff" font-weight="bold">⬢ Termux</text>
+  <text x="200" y="100" font-family="SF Mono,monospace" font-size="9" fill="#565f89">slm-agent v2.3</text>
+
+  <!-- Command line output -->
+  <g transform="translate(35, 130)">
+    <g class="l1">
+      <text class="code prompt" y="0">$ slm</text>
+    </g>
+    <g class="l2">
+      <text class="code dim" y="18">slm-agent — mobile tier · IQ2_XS</text>
+      <text class="code dim" y="30">24 tok/s · 512 MB RAM · A52</text>
+    </g>
+    <g class="l3">
+      <text class="code prompt" y="58">you ▸</text>
+      <text class="code" y="58" x="35">find subdomains</text>
+      <text class="code" y="70" x="35">of acme.test</text>
+    </g>
+    <g class="l4">
+      <text class="code magenta" y="98">┌── plan ──────────────┐</text>
+      <text class="code magenta" y="110">│ 1. subfinder         │</text>
+      <text class="code magenta" y="122">│ 2. httpx live probe  │</text>
+      <text class="code magenta" y="134">│ 3. summarize         │</text>
+      <text class="code magenta" y="146">└──────────────────────┘</text>
+    </g>
+    <g class="l5">
+      <text class="code dim" y="172">[thought] starting enum</text>
+    </g>
+    <g class="l6">
+      <text class="code cyan" y="192">┌── tool: subfinder ────┐</text>
+      <text class="code cyan" y="204">│ -silent -d acme.test  │</text>
+      <text class="code cyan" y="216">└───────────────────────┘</text>
+    </g>
+    <g class="l7">
+      <text class="code green" y="242">┌── result (1.2s) ──────┐</text>
+      <text class="code green" y="254">│ api.acme.test         │</text>
+      <text class="code green" y="266">│ staging.acme.test     │</text>
+      <text class="code green" y="278">│ admin.acme.test       │</text>
+      <text class="code green" y="290">└───────────────────────┘</text>
+    </g>
+    <g class="l8">
+      <text class="code dim" y="316">[thought] 3 subs → httpx</text>
+      <text class="code cyan" y="330">[tool: httpx] probing...</text>
+      <text class="code green" y="344">[result 0.8s] 2 live</text>
+    </g>
+    <g class="l9">
+      <text class="code" y="378" font-weight="bold" fill="#fff">┌── final ──────────────┐</text>
+      <text class="code yellow" y="392" font-weight="bold">│ ⚡ 3 subs · 2 live     │</text>
+      <text class="code red" y="406" font-weight="bold">│ ⚠ jenkins on api      │</text>
+      <text class="code" y="420" font-weight="bold" fill="#fff">└───────────────────────┘</text>
+    </g>
+  </g>
+
+  <!-- Home indicator -->
+  <rect x="160" y="770" width="80" height="4" rx="2" fill="#333"/>
+</svg>

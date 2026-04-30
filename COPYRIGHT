@@ -1,0 +1,99 @@
+                                   ┌─────────────────────────────────────┐
+                                   │     BUGHUNTER-AI · v2.3.0           │
+                                   │     © 2026  DXN10DAY                │
+                                   │     All rights reserved.            │
+                                   └─────────────────────────────────────┘
+
+
+================================================================================
+                    COPYRIGHT & TRADEMARK NOTICE
+================================================================================
+
+BUGHUNTER-AI, bugbounty-ai-v1, and slm-agent are original works authored
+by DXN10DAY.
+
+          Copyright (c) 2026  DXN10DAY.  All rights reserved.
+
+          ©  ·  ⓒ  ·  (c) 2026  DXN10DAY
+          Signal: +31 6 39420421
+          Repo:   https://github.com/DXN1-termux/BUGHUNTER-AI
+
+This Copyright notice applies to:
+
+    ·  All Python source under slm/ and tests/
+    ·  All SVG assets under assets/
+    ·  All markdown documentation (README, SECURITY, CONTRIBUTING,
+       CHANGELOG, CODE_OF_CONDUCT, LICENSE_*)
+    ·  All training, eval, and installer scripts
+    ·  The bugbounty-ai-v1 model family (0.5B / 1B / 2B) weights, quants,
+       tokenizer, imatrix calibration, and training recipes
+    ·  The ReAct prompt format, the hard-block regex library, the canary
+       detection pattern, the hash-chain provenance protocol, and the
+       three-document license stack design
+
+License: MIT + Privacy Preservation License v1.0 + Ultra Anti-CSAM
+Covenant v1.1.  See LICENSE, LICENSE_PRIVACY.md, LICENSE_ANTI_CSAM.md.
+
+Trademarks:
+  BUGHUNTER-AI, bugbounty-ai, the "A.I. on your own hardware" tagline,
+  and the ASCII banner logo are trademarks of DXN10DAY.  You may reference
+  the project by name and link to it.  You may NOT use the name or logo
+  for derivative works that materially weaken the safety posture, the
+  privacy guarantees, or the hard-block categories.
+
+Attribution requirement:
+  If you publish a derivative work, a fork, a modified distribution, or
+  research using this project, please include:
+
+      "Built on BUGHUNTER-AI (© 2026 DXN10DAY, MIT + PPL + UAAC).
+       https://github.com/DXN1-termux/BUGHUNTER-AI"
+
+  or an equivalent attribution in your README, paper, or product page.
+
+================================================================================
+                    ARCHITECTURAL IP (documented, not restricted)
+================================================================================
+
+The following design patterns are documented here as prior art from this
+project so future forks cannot claim them as their own novel inventions:
+
+  2026-04-27  ·  Three-document license stack (MIT + PPL-1.0 + UAAC-1.1)
+                 for open-source security tooling
+
+  2026-04-27  ·  Live canary-token prompt-injection detection in an
+                 agentic loop with per-turn fresh secrets and HMAC-audited
+                 leak forensics.
+
+  2026-04-27  ·  Append-only HMAC hash-chain provenance for bug-bounty
+                 first-finder proofs — content-hash committed per finding,
+                 each entry linking to the prior, exported as shareable
+                 proof JSON without disclosing content.
+
+  2026-04-27  ·  Tier-0 language gate (European-scripts whitelist) as a
+                 pre-regex guard against transliteration bypass of
+                 content-moderation patterns.
+
+  2026-04-27  ·  Context-aware CSAM detection: codewords block always,
+                 acronym allows educational/defensive (HARMFUL_VERBS vs
+                 DEFENSIVE_VERBS), contextual minor+sexual always blocks.
+
+  2026-04-27  ·  Device-level MAC-HMAC quarantine (per-install audit key,
+                 no IP-ban, no central server).
+
+  2026-04-27  ·  Immutable self-modification lock: hardcoded Python
+                 forbidden-path list spanning 7 safety modules + 7 state
+                 files + security docs + CI workflows.
+
+Prior art is asserted under this copyright notice.  Anyone is free to
+build on these patterns under the license stack; no one may re-claim them
+as novel.
+
+================================================================================
+
+             Last updated:  2026-04-29 (v2.3 release)
+             Maintainer:    DXN10DAY
+             Contact:       https://wa.me/31639420421
+
+                         ♥  Made for researchers.
+                         🛡️  Locked against abusers.
+                         📴  100% local. 100% yours.

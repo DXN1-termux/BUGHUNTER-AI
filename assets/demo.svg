@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 560" width="820" height="560">
+  <style>
+    @keyframes typing { from { width: 0 } to { width: 100% } }
+    @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    .term-bg { fill: #1a1b26; }
+    .term-border { fill: none; stroke: #414868; stroke-width: 2; rx: 10; }
+    .title-bar { fill: #24283b; }
+    .btn-red { fill: #f7768e; }
+    .btn-yellow { fill: #e0af68; }
+    .btn-green { fill: #9ece6a; }
+    .title-text { fill: #a9b1d6; font: 12px "SF Mono","Fira Code",monospace; }
+    text { font-family: "SF Mono","Fira Code","JetBrains Mono",monospace; font-size: 13px; }
+    .prompt { fill: #7aa2f7; }
+    .cmd { fill: #c0caf5; }
+    .dim { fill: #565f89; }
+    .cyan { fill: #7dcfff; }
+    .green { fill: #9ece6a; }
+    .magenta { fill: #bb9af7; }
+    .yellow { fill: #e0af68; }
+    .red { fill: #f7768e; }
+    .white { fill: #c0caf5; }
+    .bold { font-weight: bold; }
+    .cursor { fill: #c0caf5; animation: blink 1s step-end infinite; }
+    .line1 { animation: fadeIn 0.3s ease 0.5s both; }
+    .line2 { animation: fadeIn 0.3s ease 1.2s both; }
+    .line3 { animation: fadeIn 0.3s ease 1.8s both; }
+    .line4 { animation: fadeIn 0.3s ease 2.4s both; }
+    .line5 { animation: fadeIn 0.3s ease 2.8s both; }
+    .line6 { animation: fadeIn 0.3s ease 3.2s both; }
+    .line7 { animation: fadeIn 0.3s ease 3.6s both; }
+    .line8 { animation: fadeIn 0.3s ease 4.0s both; }
+    .line9 { animation: fadeIn 0.3s ease 4.4s both; }
+    .line10 { animation: fadeIn 0.3s ease 4.8s both; }
+    .line11 { animation: fadeIn 0.3s ease 5.2s both; }
+    .line12 { animation: fadeIn 0.3s ease 5.6s both; }
+    .line13 { animation: fadeIn 0.3s ease 6.0s both; }
+    .line14 { animation: fadeIn 0.3s ease 6.4s both; }
+    .line15 { animation: fadeIn 0.3s ease 6.8s both; }
+    .line16 { animation: fadeIn 0.3s ease 7.2s both; }
+    .line17 { animation: fadeIn 0.3s ease 7.6s both; }
+    .line18 { animation: fadeIn 0.3s ease 8.0s both; }
+    .line19 { animation: fadeIn 0.3s ease 8.4s both; }
+    .line20 { animation: fadeIn 0.3s ease 8.8s both; }
+    .line21 { animation: fadeIn 0.3s ease 9.2s both; }
+    .line22 { animation: fadeIn 0.3s ease 9.6s both; }
+    .line23 { animation: fadeIn 0.3s ease 10.0s both; }
+  </style>
+
+  <!-- Terminal window -->
+  <rect class="term-bg" width="820" height="560" rx="10"/>
+  <rect class="term-border" x="1" y="1" width="818" height="558"/>
+
+  <!-- Title bar -->
+  <rect class="title-bar" x="1" y="1" width="818" height="36" rx="10"/>
+  <rect class="title-bar" x="1" y="27" width="818" height="10"/>
+  <circle class="btn-red" cx="24" cy="19" r="6"/>
+  <circle class="btn-yellow" cx="44" cy="19" r="6"/>
+  <circle class="btn-green" cx="64" cy="19" r="6"/>
+  <text class="title-text" x="370" y="23" text-anchor="middle">slm — BUGHUNTER-AI v2.3 (mobile · IQ2_XS · 24 tok/s)</text>
+
+  <!-- Terminal content -->
+  <g transform="translate(20, 55)">
+    <!-- Prompt -->
+    <g class="line1">
+      <text y="0"><tspan class="prompt bold">you ▸ </tspan><tspan class="cmd">enumerate subdomains of acme.test and find vulns</tspan></text>
+    </g>
+
+    <!-- Plan -->
+    <g class="line2">
+      <text y="26"><tspan class="magenta bold">┌─ plan ─────────────────────────────────────────────────┐</tspan></text>
+    </g>
+    <g class="line3">
+      <text y="44"><tspan class="magenta">│</tspan><tspan class="white"> 1. subfinder → enumerate subdomains                    </tspan><tspan class="magenta">│</tspan></text>
+    </g>
+    <g class="line4">
+      <text y="62"><tspan class="magenta">│</tspan><tspan class="white"> 2. httpx → probe live hosts                            </tspan><tspan class="magenta">│</tspan></text>
+    </g>
+    <g class="line5">
+      <text y="80"><tspan class="magenta">│</tspan><tspan class="white"> 3. nuclei → scan for CVEs                              </tspan><tspan class="magenta">│</tspan></text>
+    </g>
+    <g class="line6">
+      <text y="98"><tspan class="magenta">│</tspan><tspan class="white"> 4. summarize findings                                  </tspan><tspan class="magenta">│</tspan></text>
+    </g>
+    <g class="line7">
+      <text y="116"><tspan class="magenta bold">└────────────────────────────────────────────────────────┘</tspan></text>
+    </g>
+
+    <!-- Tool calls -->
+    <g class="line8">
+      <text y="144"><tspan class="dim">thought</tspan><tspan class="white"> starting subdomain enumeration on the scoped target</tspan></text>
+    </g>
+    <g class="line9">
+      <text y="168"><tspan class="cyan bold">┌─ tool: subfinder ─────────────────────────────────────┐</tspan></text>
+    </g>
+    <g class="line10">
+      <text y="186"><tspan class="cyan">│</tspan><tspan class="white"> subfinder -silent -d 'acme.test'                       </tspan><tspan class="cyan">│</tspan></text>
+    </g>
+    <g class="line11">
+      <text y="204"><tspan class="cyan bold">└────────────────────────────────────────────────────────┘</tspan></text>
+    </g>
+    <g class="line12">
+      <text y="228"><tspan class="green bold">┌─ result (1.2s) ───────────────────────────────────────┐</tspan></text>
+    </g>
+    <g class="line13">
+      <text y="246"><tspan class="green">│</tspan><tspan class="white"> api.acme.test                                          </tspan><tspan class="green">│</tspan></text>
+    </g>
+    <g class="line14">
+      <text y="264"><tspan class="green">│</tspan><tspan class="white"> staging.acme.test                                      </tspan><tspan class="green">│</tspan></text>
+    </g>
+    <g class="line15">
+      <text y="282"><tspan class="green">│</tspan><tspan class="white"> admin.acme.test                                        </tspan><tspan class="green">│</tspan></text>
+    </g>
+    <g class="line16">
+      <text y="300"><tspan class="green bold">└────────────────────────────────────────────────────────┘</tspan></text>
+    </g>
+
+    <!-- Nuclei result -->
+    <g class="line17">
+      <text y="324"><tspan class="dim">thought</tspan><tspan class="white"> 3 subs found, probing live → running nuclei</tspan></text>
+    </g>
+    <g class="line18">
+      <text y="348"><tspan class="cyan bold">┌─ tool: nuclei ─────────────────────────────────────────┐</tspan></text>
+    </g>
+    <g class="line19">
+      <text y="366"><tspan class="cyan">│</tspan><tspan class="white"> nuclei -silent -u 'api.acme.test'                      </tspan><tspan class="cyan">│</tspan></text>
+    </g>
+    <g class="line20">
+      <text y="384"><tspan class="cyan bold">└────────────────────────────────────────────────────────┘</tspan></text>
+    </g>
+
+    <!-- Final -->
+    <g class="line21">
+      <text y="412"><tspan class="white bold">┌─ final ────────────────────────────────────────────────┐</tspan></text>
+    </g>
+    <g class="line22">
+      <text y="430"><tspan class="white bold">│</tspan><tspan class="red bold"> ⚠ HIGH </tspan><tspan class="white">CVE-2024-23897 (Jenkins CLI read) on api.acme.test </tspan><tspan class="white bold">│</tspan></text>
+    </g>
+    <g class="line23">
+      <text y="448"><tspan class="white bold">│</tspan><tspan class="yellow"> ⚡ MED  </tspan><tspan class="white">exposed .git/config on staging.acme.test       </tspan><tspan class="white bold">│</tspan></text>
+    </g>
+    <g class="line22">
+      <text y="466"><tspan class="white bold">│</tspan><tspan class="white"> 3 subdomains · 2 live · 2 findings · 4.8s total        </tspan><tspan class="white bold">│</tspan></text>
+    </g>
+    <g class="line23">
+      <text y="484"><tspan class="white bold">└────────────────────────────────────────────────────────┘</tspan></text>
+    </g>
+  </g>
+</svg>
