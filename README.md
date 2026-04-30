@@ -1,5 +1,3 @@
-![BUGHUNTER-AI](https://img.shields.io/badge/BUGHUNTER--AI-red?style=for-the-badge&logo=ai)
-
 <div align="center">
 
 ```
@@ -15,6 +13,7 @@
 
 ### An agentic bug-bounty SLM. 100 % local. 100 % yours.
 
+![BUGHUNTER-AI](https://img.shields.io/badge/BUGHUNTER--AI-red?style=for-the-badge&logo=ai)
 [![Version](https://img.shields.io/badge/v2.3-stable-brightgreen?style=for-the-badge)](#quickstart)
 [![Copyright](https://img.shields.io/badge/©_2026-DXN10DAY-ff69b4?style=for-the-badge)](COPYRIGHT)
 [![Model](https://img.shields.io/badge/model-bugbounty--ai--v1-8A2BE2?style=for-the-badge)](#the-model)
