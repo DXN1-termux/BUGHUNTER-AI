@@ -5,7 +5,7 @@
 <div align="center">
 
 ```
-AI · ON · ŷOUR · OWN · HARDWARE
+enjoy 
 ```
 
 ### An agentic bug-bounty SLM. 100 % local. 100 % yours.
