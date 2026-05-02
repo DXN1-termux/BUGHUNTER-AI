@@ -5,7 +5,6 @@
 <div align="center">
 
 ```
-enjoy 
 ```
 
 ### An agentic bug-bounty SLM. 100 % local. 100 % yours.
