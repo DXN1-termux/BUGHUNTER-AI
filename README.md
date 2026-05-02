@@ -2,11 +2,6 @@
 
   MADE WITH ❤️ BY DXN1
 
-<div align="center">
-
-```
-```
-
 ### An agentic bug-bounty SLM. 100 % local. 100 % yours.
 
 ![BUGHUNTER-AI](https://img.shields.io/badge/BUGHUNTER--AI-red?style=for-the-badge&logo=ai)
