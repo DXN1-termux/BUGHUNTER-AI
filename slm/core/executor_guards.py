@@ -1,7 +1,6 @@
-"""IMMUTABLE core — do not edit. Chmod 444 post-install.
-"""IMMUTABLE core — do not edit. Chmod 444 post-install.
+"""IMMUTABLE core - do not edit. Chmod 444 post-install.
 
-© 2026 DXN10DAY · BUGHUNTER-AI v2.3 · MIT + PPL-1.0 + UAAC-1.1
+2026 DXN10DAY - BUGHUNTER-AI v2.3 - MIT + PPL-1.0 + UAAC-1.1
 
 Enforces hard blocks, shell safety rails, path sandbox, rate limits.
 Self-improvement loop MUST NOT write to this file; app/reflection.py
@@ -27,7 +26,7 @@ def _audit_key() -> bytes:
     audit hash without this key.
 
     If the user wants maximum deniability they can `rm ~/.slm/audit.key`
-    at any time — existing hashes become unlinkable to any candidate plaintext.
+    at any time - existing hashes become unlinkable to any candidate plaintext.
     """
     if _AUDIT_KEY.exists():
         return _AUDIT_KEY.read_bytes()
@@ -51,8 +50,8 @@ def _device_id() -> str:
     """Privacy-preserving device fingerprint: HMAC-SHA256 of the MAC address
     (via uuid.getnode()) with the per-install audit key.
 
-    - Stable: same device → same hash across runs.
-    - Not portable: same MAC on a different install → different hash
+    - Stable: same device - same hash across runs.
+    - Not portable: same MAC on a different install - different hash
       (because each install has its own audit key).
     - Hashed: raw MAC is never stored on disk.
     - Useless without the audit key: even with a log leak, no way to
@@ -61,7 +60,7 @@ def _device_id() -> str:
     Used for:
       - tagging audit records so repeat attempts from the same device
         are linkable locally (even across reinstalls if audit.key
-        survives — user can `rm ~/.slm/audit.key` to reset)
+        survives - user can `rm ~/.slm/audit.key` to reset)
       - triggering local quarantine after repeated hard-block attempts
     """
     try:
@@ -73,7 +72,7 @@ def _device_id() -> str:
 
 # Local quarantine: after repeated hard-block attempts from this device in a
 # short window, the agent refuses ALL requests for a cooldown period. This
-# is a soft deterrent, not a security mechanism — someone persistent can
+# is a soft deterrent, not a security mechanism - someone persistent can
 # uninstall/reinstall. But it makes casual abuse attempts much less fun.
 _QUARANTINE_WINDOW_SEC = 24 * 3600    # 24 hours
 _QUARANTINE_THRESHOLD = 3              # 3 hard blocks in the window
@@ -81,10 +80,17 @@ _QUARANTINE_COOLDOWN_SEC = 60 * 60     # 1 hour lockout
 _QUARANTINE_FILE = SLM_HOME / "quarantine.flag"
 
 
-class QuarantineActive(RuntimeError):
+class HardBlockError(RuntimeError):
+    def __init__(self, category: str, match: str):
+        super().__init__(f"hard-block:{category}")
+        self.category = category
+        self.match = match
+
+
+class QuarantineActive(HardBlockError):
     """Raised when the device is currently in quarantine cooldown."""
     def __init__(self, remaining_sec: float):
-        super().__init__(f"quarantine active — cooldown {int(remaining_sec)}s remaining")
+        super().__init__("quarantine", f"cooldown:{int(remaining_sec)}s")
         self.remaining_sec = remaining_sec
 
 
@@ -99,7 +105,7 @@ def check_quarantine() -> None:
     remaining = expires_at - time.time()
     if remaining > 0:
         raise QuarantineActive(remaining)
-    # Expired — clean up
+    # Expired - clean up
     try:
         _QUARANTINE_FILE.unlink()
     except OSError:
@@ -127,7 +133,7 @@ def _trigger_quarantine_if_repeat() -> None:
             if rec.get("device_id") != device_id:
                 continue
             # Only count the 4 criminal categories toward quarantine.
-            # "sexual_content" policy blocks don't lock the agent — they
+            # "sexual_content" policy blocks don't lock the agent - they
             # just refuse the request.
             if rec.get("category") in ("csam", "terrorism", "cbrn", "mass_harm"):
                 count += 1
@@ -141,16 +147,9 @@ def _trigger_quarantine_if_repeat() -> None:
             pass
 
 
-class HardBlockError(RuntimeError):
-    def __init__(self, category: str, match: str):
-        super().__init__(f"hard-block:{category}")
-        self.category = category
-        self.match = match
-
-
 class LanguageGateError(HardBlockError):
     """Raised when input contains non-European scripts (Cyrillic, CJK, Arabic,
-    etc.) — the most common vector for bypassing English-only regex guards.
+    etc.) - the most common vector for bypassing English-only regex guards.
 
     The agent operates in English + European languages only (Latin-script
     plus Greek and emojis). Input in other scripts is refused at the gate
@@ -193,7 +192,7 @@ _ALLOWED_RANGES = [
     (0xFE00, 0xFE0F),   # Variation selectors (emoji modifiers)
 ]
 
-# Named forbidden scripts — when detected, the error message names them
+# Named forbidden scripts - when detected, the error message names them
 # so users understand why they were refused.
 _SCRIPT_NAMES = [
     ((0x0400, 0x04FF), "Cyrillic"),
@@ -233,7 +232,7 @@ _SCRIPT_NAMES = [
 # Homoglyph detection: these Cyrillic letters look identical to Latin but
 # are different codepoints. Common bypass: typing "cаsm" with Cyrillic 'а'
 # (U+0430) instead of Latin 'a' (U+0061) so the regex misses it.
-# Caught at the gate because they're in the Cyrillic block — never reach here.
+# Caught at the gate because they're in the Cyrillic block - never reach here.
 _HOMOGLYPH_LATIN_MAP = {
     "а": "a", "е": "e", "о": "o", "р": "p", "с": "c",
     "у": "y", "х": "x", "А": "A", "В": "B", "Е": "E",
@@ -288,36 +287,29 @@ def check_language_gate(text: str, where: str = "input",
         raise LanguageGateError(sorted(scripts_seen) or ["unknown"])
 
 
-def _load_hard_blocks() -> dict:
-    try:
-        with _HB_FILE.open() as f:
-            data = yaml.safe_load(f) or {}
-        if not isinstance(data, dict) or "categories" not in data:
-            return {"categories": {}}
-        return data
-    except Exception:
-        # If YAML is missing/corrupted/tampered, fall back to empty config.
-        # The hardcoded CSAM layer below will still fire.
-        return {"categories": {}}
+_COMPILED = None
 
-
-_HB = _load_hard_blocks()
-_COMPILED = {
-    cat: [re.compile(p) for p in meta.get("patterns", [])]
-    for cat, meta in _HB.get("categories", {}).items()
-}
+def get_compiled():
+    global _COMPILED
+    if _COMPILED is None:
+        from slm.core.hard_blocks_data import HARD_BLOCKS
+        _COMPILED = {
+            cat: [re.compile(p) for p in meta.get("patterns", [])]
+            for cat, meta in HARD_BLOCKS.items()
+        }
+    return _COMPILED
 
 
 # -------------------------------------------------------------- CSAM tier-2 (hardcoded)
 # Defense-in-depth: these patterns fire even if hard_blocks.yaml is tampered with,
-# replaced, or fails to load. Zero tolerance — no config, no --yolo, no self-edit can
+# replaced, or fails to load. Zero tolerance - no config, no --yolo, no self-edit can
 # disable this layer.
 #
 # TWO groups:
-#   A. CODEWORDS — distribution/community terms with ZERO legitimate context
+#   A. CODEWORDS - distribution/community terms with ZERO legitimate context
 #      ("pthc", "loli", "raygold", etc.). Always block on bare match.
-#   B. CONTEXTUAL — minor + sexual language in either order, or age-explicit
-#      patterns. Always block — describing sexual content involving minors
+#   B. CONTEXTUAL - minor + sexual language in either order, or age-explicit
+#      patterns. Always block - describing sexual content involving minors
 #      is harmful regardless of framing.
 #
 # The acronym "CSAM" / "CP" / "child porn" itself is handled by the
@@ -333,7 +325,7 @@ _CSAM_CODEWORDS = re.compile(
 )
 
 _CSAM_CONTEXTUAL = [
-    re.compile(r"(?i)\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b[\s\S]{0,120}\b(sex|sexual|porn|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b"),
+    re.compile(r"(?i)\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b[\s\S]{0,120}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b"),
     re.compile(r"(?i)\b(sex|sexual|porn|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b[\s\S]{0,120}\b(child|minor|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b"),
     re.compile(r"(?i)\b(1[0-7]|[0-9])\s*(y(ear)?s?[\s-]?o(ld)?|yo)\b[\s\S]{0,80}\b(sex|porn|nude|naked|erotic|nsfw|explicit|intimate)\b"),
     re.compile(r"(?i)\b(groom|seduce|lure|entice|coerce|sextort)\b[\s\S]{0,80}\b(child|minor|kid|teen|underage|young)\b"),
@@ -342,7 +334,7 @@ _CSAM_CONTEXTUAL = [
 # Context-aware: the acronym itself ("CSAM", "CSEM", "child porn", "CP")
 _CSAM_TERMS = re.compile(r"(?i)\b(csam|csem|child[\s-]*porn)\b")
 
-# Harmful-intent verbs — if paired with a CSAM term and NO defensive verb nearby, block
+# Harmful-intent verbs - if paired with a CSAM term and NO defensive verb nearby, block
 _CSAM_HARMFUL_VERBS = re.compile(
     r"(?i)\b("
     r"generate|create|produce|make|makes|making|cook|write|writes|writing|"
@@ -355,7 +347,7 @@ _CSAM_HARMFUL_VERBS = re.compile(
     r")\b"
 )
 
-# Defensive-intent verbs — if present alongside a CSAM term, the mention is
+# Defensive-intent verbs - if present alongside a CSAM term, the mention is
 # treated as educational/defensive and passes the check
 _CSAM_DEFENSIVE_VERBS = re.compile(
     r"(?i)\b("
@@ -379,11 +371,11 @@ def _csam_context_check(text: str) -> tuple[bool, str]:
     from harmful intent. Returns (should_block, matched_substring).
 
     Rules:
-      1. Distribution codewords (pthc, loli, etc.) → ALWAYS block
-      2. Contextual minor+sexual language → ALWAYS block
-      3. Acronym "CSAM" alone → allow if defensive verb present
-                              → block if harmful verb present and no defensive
-                              → allow otherwise (model handles ambiguity)
+      1. Distribution codewords (pthc, loli, etc.) - ALWAYS block
+      2. Contextual minor+sexual language - ALWAYS block
+      3. Acronym "CSAM" alone - allow if defensive verb present
+                              - block if harmful verb present and no defensive
+                              - allow otherwise (model handles ambiguity)
     """
     # Rule 1: codewords with zero legitimate context
     m = _CSAM_CODEWORDS.search(text)
@@ -394,7 +386,7 @@ def _csam_context_check(text: str) -> tuple[bool, str]:
         m = p.search(text)
         if m:
             return True, m.group(0)
-    # Rule 3: acronym — context-aware
+    # Rule 3: acronym - context-aware
     term_m = _CSAM_TERMS.search(text)
     if term_m:
         has_harmful = _CSAM_HARMFUL_VERBS.search(text)
@@ -408,7 +400,7 @@ def _normalize_for_scan(text: str) -> str:
     """Unicode-fold + deleetify so obfuscated variants can't bypass patterns.
     Converts: fullwidth/mathalpha -> ASCII, strips zero-widths, collapses
     whitespace, maps common leetspeak (0->o, 1->i/l, 3->e, 4->a, 5->s, 7->t,
-    $->s, @->a). Intentionally lossy — only used for pattern matching, not
+    $->s, @->a). Intentionally lossy - only used for pattern matching, not
     displayed or stored."""
     if not text:
         return text
@@ -428,7 +420,7 @@ def _normalize_for_scan(text: str) -> str:
 
 
 def _audit(category: str, match: str, where: str, text: str) -> None:
-    """Append-only audit record. Stores HMAC-SHA256 keyed hashes only —
+    """Append-only audit record. Stores HMAC-SHA256 keyed hashes only -
     no raw content, ever, and dictionary attacks are infeasible without
     the per-install audit key at ~/.slm/audit.key.
 
@@ -442,7 +434,7 @@ def _audit(category: str, match: str, where: str, text: str) -> None:
 
     With the audit.key deleted, these hashes are unlinkable to ANY
     candidate plaintext. With it, dictionary attacks require the key
-    file itself — no precomputed rainbow table works.
+    file itself - no precomputed rainbow table works.
     """
     _AUDIT.parent.mkdir(parents=True, exist_ok=True)
     rec = {
@@ -468,7 +460,7 @@ def check_hard_blocks(text: str, where: str = "input") -> None:
     """Raise HardBlockError if text matches any immutable hard-block pattern.
 
     Defense-in-depth:
-      0. Language gate (fires FIRST — non-European scripts refused at the edge)
+      0. Language gate (fires FIRST - non-European scripts refused at the edge)
       1. Hardcoded CSAM patterns (fires even if YAML tampered/missing)
       2. Normalized-form scan (defeats leetspeak/unicode obfuscation)
       3. YAML-loaded patterns (raw + normalized)
@@ -489,16 +481,16 @@ def check_hard_blocks(text: str, where: str = "input") -> None:
     except QuarantineActive as qa:
         raise HardBlockError("quarantine", f"cooldown:{int(qa.remaining_sec)}s")
 
-    # Tier 0: language gate — refuses Cyrillic/CJK/Arabic/etc. BEFORE any
+    # Tier 0: language gate - refuses Cyrillic/CJK/Arabic/etc. BEFORE any
     # regex runs. Catches the most common bypass vector (transliteration).
-    # Skipped on filesystem paths — Android users legitimately have files
+    # Skipped on filesystem paths - Android users legitimately have files
     # with Japanese / Chinese / Arabic names in Downloads/Music/etc.
     if where != "path":
         check_language_gate(text, where=where)
 
     normalized = _normalize_for_scan(text)
 
-    # Tier 1: CSAM — smart context-aware check (codewords always block,
+    # Tier 1: CSAM - smart context-aware check (codewords always block,
     # acronym checked against harmful-vs-defensive intent).
     for candidate in (text, normalized):
         blocked, match = _csam_context_check(candidate)
@@ -507,7 +499,8 @@ def check_hard_blocks(text: str, where: str = "input") -> None:
             raise HardBlockError("csam", match[:80])
 
     # Tier 2 (YAML-loaded): all configured categories on both forms
-    for cat, patterns in _COMPILED.items():
+    compiled = get_compiled()
+    for cat, patterns in compiled.items():
         for p in patterns:
             for candidate in (text, normalized):
                 m = p.search(candidate)
@@ -519,7 +512,7 @@ def check_hard_blocks(text: str, where: str = "input") -> None:
 # --------------------------------------------------------------- path sandbox
 # --------------------------------------------------------------- path sandbox
 #
-# HARDCODED FORBIDDEN LIST — cannot be disabled by config, prompt, --yolo,
+# HARDCODED FORBIDDEN LIST - cannot be disabled by config, prompt, --yolo,
 # self-improvement proposals, or any agent write. This is the authoritative
 # source of which paths are safety-critical. Editing this list requires
 # editing the source code and rebuilding.
@@ -531,8 +524,8 @@ def check_hard_blocks(text: str, where: str = "input") -> None:
 #   - CI workflows + SECURITY docs (so it can't silently weaken itself)
 #   - system paths (~/.ssh, /etc, /sys, /proc, /dev)
 #
-# Everything else — system.md, scope.yaml, skills/*, tools.py, its own prompt
-# training data, findings, etc. — is rewritable by the agent.
+# Everything else - system.md, scope.yaml, skills/*, tools.py, its own prompt
+# training data, findings, etc. - is rewritable by the agent.
 _SAFETY_MODULE_NAMES = {
     "executor_guards.py", "scope_enforcer.py", "hard_blocks.yaml",
     "canary.py", "refusal.py", "vault.py", "provenance.py",
@@ -580,7 +573,7 @@ def _is_forbidden(target: pathlib.Path) -> tuple[bool, str]:
     if str((SLM_HOME / "core").resolve()) in s:
         return True, "~/.slm/core/"
 
-    # CI workflows — agent can't disable its own tests
+    # CI workflows - agent can't disable its own tests
     if "/.github/workflows/" in s or "/.github/ISSUE_TEMPLATE/" in s:
         return True, ".github/"
 
@@ -607,7 +600,7 @@ def resolve_safe_path(p: str, *, workdir: pathlib.Path, allow_writes: bool) -> p
       - anything with CSAM-indicating content in the path name
 
     This function is called by every file tool (read/write/edit/delete/list).
-    It is the single enforcement point — if a path passes here, every
+    It is the single enforcement point - if a path passes here, every
     downstream tool treats it as safe. If it doesn't, the tool errors out
     before touching disk.
 
@@ -691,7 +684,7 @@ class RateLimiter:
         self._recent.append(signature)
         if self._recent.count(signature) >= self.repeat_threshold:
             raise RuntimeError(
-                f"loop detected — signature repeated {self.repeat_threshold}x "
+                f"loop detected - signature repeated {self.repeat_threshold}x "
                 f"within last {self.window} calls"
             )
 

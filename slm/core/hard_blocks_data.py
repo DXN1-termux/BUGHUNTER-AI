@@ -1,3 +1,6 @@
+import re
+
+# Corrected regex patterns
 HARD_BLOCKS = {
     "terrorism": {
         "patterns": [
@@ -8,7 +11,7 @@ HARD_BLOCKS = {
     },
     "cbrn": {
         "patterns": [
-            r"(?i)\b(synthes\w*|manufactur|mak(e|ing)|produc|cook)\b.*\b(sarin|vx|novichok|anthrax|ricin|botulinum|mustard\s*gas|chlorine\s*gas|phosgene)\b",
+            r"(?i)\b(synthes\w*|manufactur\w*|mak(e|ing)|produc\w*|cook\w*)\b.*\b(sarin|vx|novichok|anthrax|ricin|botulinum|mustard\s*gas|chlorine\s*gas|phosgene)\b",
             r"(?i)\b(enrich|weaponize)\b.*\b(uranium|plutonium)\b",
             r"(?i)\b(dirty\s*bomb|nerve\s*agent|bioweapon)\b.*\b(build|make|create|synthes\w*)\b"
         ]
@@ -16,7 +19,7 @@ HARD_BLOCKS = {
     "csam": {
         "patterns": [
             r"(?i)\b(child|children|minor|minors|underage|under[- ]?age|under[\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b.{0,100}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip)\b",
-            r"(?i)\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip)\b.{0,100}\b(child|children|minor|minors|underage|under[- ]?age|under[\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b",
+            r"(?i)\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b.{0,100}\b(child|children|minor|minors|underage|under[- ]?age|under[\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b",
             r"(?i)\b(loli(con)?|shota(con)?|jailbait|cub\s*porn|pedo(phil(e|ia)?|bear)?|hebephil|ephebophil|mapt|nomap|map\s+community|kiddie\s*porn|kid\s*porn)\b",
             r"(?i)\b(1[0-7]|[0-9])[\s-]?(y(ear)?s?[\s-]?o(ld)?|yo)\b.{0,60}\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate)\b",
             r"(?i)\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate)\b.{0,60}\b(1[0-7]|[0-9])[\s-]?(y(ear)?s?[\s-]?o(ld)?|yo)\b",
