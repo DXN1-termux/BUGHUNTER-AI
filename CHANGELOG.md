@@ -7,21 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.4.0] — 2026-06-01
+## [2.4.0] — 2026-06-01 | TITAN EDITION
 
 ### ✨ Added
-- **Setup Wizard Upgrade**: Improved device detection, input validation (URLs), and advanced configuration options (memory limit, log level).
-- **Interface Refinement**: Modernized TUI CSS theme and improved Setup Wizard UI with `rich` for better readability.
+- **TITAN Core Logic**: New `MissionOrchestrator` with recursive task decomposition and self-healing execution paths.
+- **TITAN Command Center (TUI)**: High-fidelity terminal interface with real-time system monitoring (System Pulse), tool feed, and multi-tab mission control.
+- **TITAN Setup Wizard**: Redesigned installation and configuration experience with full autonomy support (YOLO mode) and hardware-aligned deployment.
+- **Cyberpunk Aesthetic**: Unified dark-mode theme across all interfaces with high-contrast mission status indicators.
+- **Skill Synthesis**: YOLO-mode capability to generate and validate new Python tools on-the-fly.
 
 ### 🔧 Changed
-- **Safety Architecture**: Hardened CSAM detection by moving from fragile regex YAML to native, deterministically compiled Python pattern sets.
-- **Project Structure**: Created `slm/core/hard_blocks_data.py` for centralized, robust pattern management.
+- **Installation Pipeline**: Modernized `install.sh` and Termux sub-installer with optimized ARMv8.2 build flags for `llama.cpp`.
+- **System Monitoring**: `slm/device.py` now provides real-time CPU and RAM utilization metrics for TUI dashboards.
+- **CLI Upgrades**: Added `pursue-titan` command for high-fidelity autonomous missions.
 
 ### 🐛 Fixed
-- **Codebase Sanity**: Fixed syntax corruption (`—`, `©`, `·`) and resolved pervasive linting/formatting issues (PEP8 compliance).
-- **Exception Stability**: Fixed `HardBlockError` exception hierarchy issues causing test failures.
-- **Refusal Detection**: Fixed regex patterns in `slm/refusal.py` to correctly identify agent refusals.
-- **Test Suite**: Stabilized tests by refactoring `tests/test_safety.py` and adding quarantine-bypass test fixtures.
+- **TUI Stability**: Resolved issues with log truncation and event handling in the `textual` application.
+- **Setup Reliability**: Fixed URL validation and fallback path handling in the wizard.
+- **Code Hygiene**: Performed massive cleanup of line-length and indentation violations across the entire codebase.
 
 ----------
 ----------

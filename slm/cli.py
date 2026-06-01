@@ -93,20 +93,16 @@ def _make_agent(yolo: bool = False) -> Agent:
 def default(
     ctx: typer.Context,
     prompt: list[str] = typer.Argument(None),
-    tui: bool = typer.Option(
-        False,
-        "--tui"),
-        yolo: bool = typer.Option(
-            False,
-            "--yolo"),
-    json_out: bool = typer.Option(
-        False,
-        "--json"),
+    tui: bool = typer.Option(False, "--tui"),
+    yolo: bool = typer.Option(False, "--yolo"),
+    json_out: bool = typer.Option(False, "--json"),
     version: bool = typer.Option(
         False,
         "--version",
         callback=_version_callback,
-        is_eager=True)):
+        is_eager=True,
+    ),
+):
     if ctx.invoked_subcommand is not None:
         return
     if prompt:
@@ -114,10 +110,39 @@ def default(
         return
     if tui:
         from slm.ui_tui import run_tui
+
         run_tui(_make_agent(yolo))
     else:
         from slm.ui_repl import run_repl
+
         run_repl(_make_agent(yolo))
+
+
+@app.command()
+def chat(
+    tui: bool = typer.Option(False, "--tui", help="Start in TUI mode"),
+    yolo: bool = typer.Option(False, "--yolo", help="Enable autonomous YOLO mode"),
+):
+    """Start an interactive chat session with the agent."""
+    if tui:
+        from slm.ui_tui import run_tui
+
+        run_tui(_make_agent(yolo))
+    else:
+        from slm.ui_repl import run_repl
+
+        run_repl(_make_agent(yolo))
+
+
+@app.command()
+def chat_web(
+    port: int = typer.Option(5000, "--port", "-p", help="Port to run the web server on")
+):
+    """Start the web-based chat interface (Flask)."""
+    from slm.web_chat import run_web
+
+    console.print(f"[green]Starting TITAN Web Chat on http://0.0.0.0:{port}[/green]")
+    run_web(port=port)
 
 
 def _oneshot(prompt: str, *, yolo: bool, json_out: bool):
@@ -174,16 +199,30 @@ def bench():
 
 
 @app.command()
-def doctor():
-    """Health check."""
-    from slm.doctor import run_doctor
-    run_doctor()
+def prowl(
+    target: str = typer.Argument(..., help="Domain to prowl (recon)"),
+):
+    """Start the TITAN Prowler engine on a target."""
+    from slm.core.prowler import ProwlerEngine, ProwlerReporter
+    import asyncio
+
+    engine = ProwlerEngine()
+    console.print(f"[bold red]Initializing TITAN Prowler on {target}...[/bold red]")
+    
+    async def run():
+        await engine.start_recon_cycle(target)
+        report = ProwlerReporter.generate_summary(engine)
+        console.print(Panel(report, title="PROWLER MISSION COMPLETE", style="bold red"))
+
+    asyncio.run(run())
 
 
 @app.command()
-def pursue(goal: list[str] = typer.Argument(...),
-           cycles: int = typer.Option(5, "--cycles")):
-    """Autonomous mode — keep working until the goal is satisfied."""
+def pursue(
+    goal: list[str] = typer.Argument(...),
+    cycles: int = typer.Option(5, "--cycles", help="Max autonomous cycles"),
+):
+    """Autonomous mode — keep working until the goal is satisfied (standard)."""
     agent = _make_agent(yolo=False)
     goal_text = " ".join(goal)
     for e in agent.pursue(goal_text, max_cycles=cycles):
@@ -191,19 +230,38 @@ def pursue(goal: list[str] = typer.Argument(...),
             console.print(f"[magenta][plan][/magenta] {e.content}")
         elif e.kind == "thought":
             console.print(f"[dim][thought][/dim] {e.content}")
-        elif e.kind == "confirm":
-            console.print(
-                f"[yellow][confirm][/yellow] {e.content} (non-interactive mode — auto-approving)")
-        elif e.kind == "tool_call":
-            console.print(f"[cyan][tool][/cyan] {e.content}")
-        elif e.kind == "tool_result":
-            body = e.content[:500] + ("…" if len(e.content) > 500 else "")
-            console.print(
-                f"[green][result {e.meta.get('dt', 0):.1f}s][/green] {body}")
         elif e.kind == "final":
-            console.print(f"[bold][final][/bold] {e.content}")
+            console.print(Panel(e.content, title="MISSION COMPLETE", style="green"))
         elif e.kind == "error":
-            console.print(f"[red][error][/red] {e.content}")
+            console.print(f"[red]error:[/] {e.content}")
+
+
+@app.command()
+def pursue_titan(
+    goal: list[str] = typer.Argument(...),
+):
+    """High-fidelity TITAN mission with recursive task decomposition and autonomy."""
+    from slm.core.titan_logic import MissionOrchestrator
+    import asyncio
+
+    agent = _make_agent(yolo=True)
+    orchestrator = MissionOrchestrator(agent)
+    goal_text = " ".join(goal)
+
+    async def run():
+        async for e in orchestrator.execute_mission(goal_text):
+            if e.kind == "final":
+                console.print(Panel(e.content, title="TITAN MISSION FINALIZED", style="bold red"))
+            elif e.kind == "thought":
+                console.print(f"[dim]TITAN thought:[/] {e.content}")
+            elif e.kind == "plan":
+                console.print(Panel(e.content, title="MISSION STRUCTURE", style="cyan"))
+            elif e.kind == "error":
+                console.print(f"[bold red]FAULT:[/] {e.content}")
+            elif e.kind == "tool_call":
+                console.print(f"[cyan][TITAN TOOL][/cyan] {e.content}")
+
+    asyncio.run(run())
 
 
 @app.command()
@@ -295,18 +353,20 @@ def prove(
     out: str = typer.Option(
         None,
         "--out",
-        help="Write proof JSON to this path"),
-        witness: list[str] = typer.Option(
-            None,
-            "--witness",
-        help="External witness URL (repeatable)")):
+        help="Write proof JSON to this path",
+    ),
+    witness: list[str] = typer.Option(
+        None,
+        "--witness",
+        help="External witness URL (repeatable)",
+    ),
+):
     """Export a first-finder provenance proof for a given finding."""
     from slm.provenance import export_proof
-    out_path = pathlib.Path(out) if out else pathlib.Path(
-        f"proof_{finding_id}.json")
+
+    out_path = pathlib.Path(out) if out else pathlib.Path(f"proof_{finding_id}.json")
     try:
-        proof = export_proof(finding_id, out_path=out_path,
-                             witness_urls=witness)
+        proof = export_proof(finding_id, out_path=out_path, witness_urls=witness)
     except ValueError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
@@ -314,11 +374,9 @@ def prove(
     console.print(f"  finding_id : [cyan]{proof['finding_id']}[/cyan]")
     console.print(f"  target     : [cyan]{proof['target']}[/cyan]")
     console.print(f"  timestamp  : [cyan]{proof['timestamp_iso']}[/cyan]")
-    console.print(
-        f"  content_hash : [dim]{proof['content_hash'][:24]}...[/dim]")
+    console.print(f"  content_hash : [dim]{proof['content_hash'][:24]}...[/dim]")
     console.print(f"  entry_hash   : [dim]{proof['entry_hash'][:24]}...[/dim]")
-    console.print(
-        f"\n  Share [bold]{out_path}[/bold] with the bounty triager.")
+    console.print(f"\n  Share [bold]{out_path}[/bold] with the bounty triager.")
 
 
 @app.command()
@@ -327,9 +385,12 @@ def verify(
     content_file: str = typer.Option(
         None,
         "--content",
-        help="Path to disclosed finding content (JSON with target/title/description/poc)")):
+        help="Path to disclosed finding content (JSON with target/title/description/poc)",
+    ),
+):
     """Verify a provenance proof (and optionally content) matches."""
     from slm.provenance import verify_proof
+
     proof = json.loads(pathlib.Path(proof_file).read_text())
     kwargs = {}
     if content_file:

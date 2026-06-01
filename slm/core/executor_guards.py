@@ -18,9 +18,7 @@ import pathlib
 import shlex
 import unicodedata
 import uuid
-import yaml
 from collections import deque
-from typing import Iterable
 
 SLM_HOME = pathlib.Path(os.environ.get(
     "SLM_HOME", pathlib.Path.home() / ".slm"))
@@ -309,10 +307,12 @@ _COMPILED = None
 def get_compiled():
     global _COMPILED
     if _COMPILED is None:
-        from slm.core.hard_blocks_data import HARD_BLOCKS
+        import importlib
+        import slm.core.hard_blocks_data as hbd
+        importlib.reload(hbd)
         _COMPILED = {
             cat: [re.compile(p) for p in meta.get("patterns", [])]
-            for cat, meta in HARD_BLOCKS.items()
+            for cat, meta in hbd.HARD_BLOCKS.items()
         }
     return _COMPILED
 
@@ -343,17 +343,37 @@ _CSAM_CODEWORDS = re.compile(
 
 _CSAM_CONTEXTUAL = [
     re.compile(
-        r"(?i)\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b[\s\S]{0,120}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b"),
+        (
+            r"(?i)\b(child(ren)?|minor(s)?|underage|under[\s-]?18|pre[\s-]?teen(s)?|kid(s)?|"
+            r"toddler(s)?|infant(s)?|young\s+(girl|boy)s?|little\s+(girl|boy)s?|schoolgirl(s)?|"
+            r"schoolboy(s)?|teen(ager)?s?)\b[\s\S]{0,120}\b(sex(ual)?|porn(ograph\w*)?|nude(s)?|"
+            r"naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b"
+        )
+    ),
     re.compile(
-        r"(?i)\b(sex|sexual|porn|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b[\s\S]{0,120}\b(child|minor|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b"),
+        (
+            r"(?i)\b(sex(ual)?|porn(ograph\w*)?|nude(s)?|naked|nsfw|explicit|erotic|fetish|molest|"
+            r"lewd|undress|strip|intimate|rape)\b[\s\S]{0,120}\b(child(ren)?|minor(s)?|underage|"
+            r"under[\s-]?18|pre[\s-]?teen(s)?|kid(s)?|toddler(s)?|infant(s)?|young\s+(girl|boy)s?|"
+            r"little\s+(girl|boy)s?|schoolgirl(s)?|schoolboy(s)?|teen(ager)?s?)\b"
+        )
+    ),
     re.compile(
-        r"(?i)\b(1[0-7]|[0-9])\s*(y(ear)?s?[\s-]?o(ld)?|yo)\b[\s\S]{0,80}\b(sex|porn|nude|naked|erotic|nsfw|explicit|intimate)\b"),
+        (
+            r"(?i)\b(1[0-7]|[0-9])\s*(y(ear)?s?[\s-]?o(ld)?|yo)s?\b[\s\S]{0,80}\b"
+            r"(sex(ual)?|porn(ograph\w*)?|nude(s)?|naked|erotic|nsfw|explicit|intimate)\b"
+        )
+    ),
     re.compile(
-        r"(?i)\b(groom|seduce|lure|entice|coerce|sextort)\b[\s\S]{0,80}\b(child|minor|kid|teen|underage|young)\b"),
+        (
+            r"(?i)\b(groom|seduce|lure|entice|coerce|sextort)\b[\s\S]{0,80}\b"
+            r"(child(ren)?|minor(s)?|kid(s)?|teen(ager)?s?|underage|young)\b"
+        )
+    ),
 ]
 
 # Context-aware: the acronym itself ("CSAM", "CSEM", "child porn", "CP")
-_CSAM_TERMS = re.compile(r"(?i)\b(csam|csem|child[\s-]*porn)\b")
+_CSAM_TERMS = re.compile(r"(?i)(csam|csem|child[\s-]*porn)")
 
 # Harmful-intent verbs - if paired with a CSAM term and NO defensive verb
 # nearby, block
@@ -389,16 +409,6 @@ _CSAM_DEFENSIVE_VERBS = re.compile(
 
 
 def _csam_context_check(text: str) -> tuple[bool, str]:
-    """Smart CSAM check that distinguishes educational/defensive mentions
-    from harmful intent. Returns (should_block, matched_substring).
-
-    Rules:
-      1. Distribution codewords (pthc, loli, etc.) - ALWAYS block
-      2. Contextual minor+sexual language - ALWAYS block
-      3. Acronym "CSAM" alone - allow if defensive verb present
-                              - block if harmful verb present and no defensive
-                              - allow otherwise (model handles ambiguity)
-    """
     # Rule 1: codewords with zero legitimate context
     m = _CSAM_CODEWORDS.search(text)
     if m:
@@ -408,14 +418,27 @@ def _csam_context_check(text: str) -> tuple[bool, str]:
         m = p.search(text)
         if m:
             return True, m.group(0)
-    # Rule 3: acronym - context-aware
     term_m = _CSAM_TERMS.search(text)
     if term_m:
         has_harmful = _CSAM_HARMFUL_VERBS.search(text)
         has_defensive = _CSAM_DEFENSIVE_VERBS.search(text)
-        if has_harmful and not has_defensive:
-            return True, term_m.group(0) + ":harmful_intent"
+
+        harmful_match = has_harmful.group(0) if has_harmful else "None"
+        defensive_match = has_defensive.group(0) if has_defensive else "None"
+        # print(f"DEBUG: text='{text}' | term='{term_m.group(0)}' | harmful='{harmful_match}' | defensive='{defensive_match}'")
+
+        # If it has harmful intent, it's blocked UNLESS it's purely defensive.
+        # Certain verbs like 'bypass' always block when paired with CSAM terms.
+        if has_harmful:
+            # Overrides: bypass/circumvent/jailbreak always block
+            if re.search(r"(?i)\b(bypass|circumvent|jailbreak|weaken|evade|disable)\b", text):
+                return True, term_m.group(0) + ":bypass_attempt"
+
+            if not has_defensive:
+                return True, term_m.group(0) + ":harmful_intent"
+
     return False, ""
+
 
 
 def _normalize_for_scan(text: str) -> str:

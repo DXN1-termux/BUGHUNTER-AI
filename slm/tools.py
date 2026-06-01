@@ -67,9 +67,10 @@ def shell(cmd: str, *, timeout: int = 30, cap: int = 2048) -> str:
 
 
 # ----------------------------------------------------------- files
-@tool("read_file",
-      {"type": "object", "properties": {"path": {"type": "string"}},
-       "required": ["path"]})
+@tool(
+    "read_file",
+    {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
+)
 def read_file(path: str) -> str:
     if not path or not path.strip():
         return "error: empty path"
@@ -81,16 +82,20 @@ def read_file(path: str) -> str:
     data = p.read_text(errors="replace")
     lines = data.splitlines()
     if len(data) > 8192:
-        data = data[:8192] + \
-            f"\n…[truncated; {len(data)} bytes, {len(lines)} lines total]"
+        msg = f"\n…[truncated; {len(data)} bytes, {len(lines)} lines total]"
+        data = data[:8192] + msg
     return data
 
 
-@tool("write_file",
-      {"type": "object",
-       "properties": {"path": {"type": "string"}, "content": {"type": "string"}},
-       "required": ["path", "content"]},
-      mutating=True)
+@tool(
+    "write_file",
+    {
+        "type": "object",
+        "properties": {"path": {"type": "string"}, "content": {"type": "string"}},
+        "required": ["path", "content"],
+    },
+    mutating=True,
+)
 def write_file(path: str, content: str) -> str:
     if not path or not path.strip():
         return "error: empty path"
@@ -103,12 +108,19 @@ def write_file(path: str, content: str) -> str:
     return f"wrote {len(content)} bytes ({len(content.splitlines())} lines) -> {p}"
 
 
-@tool("edit_file",
-      {"type": "object",
-       "properties": {"path": {"type": "string"},
-                      "old": {"type": "string"}, "new": {"type": "string"}},
-       "required": ["path", "old", "new"]},
-      mutating=True)
+@tool(
+    "edit_file",
+    {
+        "type": "object",
+        "properties": {
+            "path": {"type": "string"},
+            "old": {"type": "string"},
+            "new": {"type": "string"},
+        },
+        "required": ["path", "old", "new"],
+    },
+    mutating=True,
+)
 def edit_file(path: str, old: str, new: str) -> str:
     if not path or not path.strip():
         return "error: empty path"
@@ -120,10 +132,11 @@ def edit_file(path: str, old: str, new: str) -> str:
         return f"error: file not found: {p}"
     txt = p.read_text()
     if txt.count(old) == 0:
-        return f"error: old string not found in {p} (file has {
-            len(
-                txt.splitlines())} lines, {
-            len(txt)} bytes)"
+        msg = (
+            f"error: old string not found in {p} "
+            f"(file has {len(txt.splitlines())} lines, {len(txt)} bytes)"
+        )
+        return msg
     if txt.count(old) > 1:
         return f"error: old string matches {txt.count(old)} times — not unique"
     p.write_text(txt.replace(old, new, 1))
@@ -166,9 +179,10 @@ def list_dir(path: str) -> str:
 
 
 # ----------------------------------------------------------- web
-@tool("web_search",
-      {"type": "object", "properties": {"query": {"type": "string"}},
-       "required": ["query"]})
+@tool(
+    "web_search",
+    {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+)
 def web_search(query: str) -> str:
     if not query or not query.strip():
         return "error: empty search query"
@@ -185,22 +199,25 @@ def web_search(query: str) -> str:
             break
         except Exception as e:
             last_err = e
-            time.sleep(1.0 * (2 ** attempt))
+            time.sleep(1.0 * (2**attempt))
     else:
         return f"error: web search failed after 3 attempts: {last_err}"
-    lines = [f"- {r.get('title',
-                        '')} — {r.get('href',
-                                      '')}\n  {r.get('body',
-                                                     '')[:160]}" for r in results]
+    lines = []
+    for r in results:
+        title = r.get("title", "")
+        href = r.get("href", "")
+        body = r.get("body", "")[:160]
+        lines.append(f"- {title} — {href}\n  {body}")
     out = "\n".join(lines) or "(no results)"
     check_hard_blocks(out, where="web_search_result")
     return out
 
 
-@tool("fetch_url",
-      {"type": "object", "properties": {"url": {"type": "string"}},
-       "required": ["url"]},
-      needs_scope=True)
+@tool(
+    "fetch_url",
+    {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]},
+    needs_scope=True,
+)
 def fetch_url(url: str) -> str:
     if not url or not url.strip():
         return "error: empty URL"
@@ -212,26 +229,21 @@ def fetch_url(url: str) -> str:
     try:
         r = httpx.get(
             url,
-            timeout=httpx.Timeout(
-                20.0,
-                connect=5.0),
+            timeout=httpx.Timeout(20.0, connect=5.0),
             follow_redirects=True,
-            headers={
-                "User-Agent": "slm-agent/2.3"})
+            headers={"User-Agent": "slm-agent/2.3"},
+        )
         soup = BeautifulSoup(r.text, "html.parser")
         for tag in soup(["script", "style", "nav", "footer", "header"]):
             tag.decompose()
         text = soup.get_text(" ", strip=True)
         cap = 4096
         if len(text) > cap:
-            text = text[:cap] + \
-                f"\n…[truncated; {len(r.text)} bytes total, {len(r.text.splitlines())} lines]"
+            msg = f"\n…[truncated; {len(r.text)} bytes total, {len(r.text.splitlines())} lines]"
+            text = text[:cap] + msg
         check_hard_blocks(text, where="fetch_url_result")
-        return f"status={
-            r.status_code} content_type={
-            r.headers.get(
-                'content-type',
-                '')}\n{text}"
+        ct = r.headers.get("content-type", "")
+        return f"status={r.status_code} content_type={ct}\n{text}"
     except httpx.TimeoutException:
         return f"error: request timed out (20s) for {url}"
     except httpx.ConnectError as e:
@@ -241,10 +253,11 @@ def fetch_url(url: str) -> str:
 
 
 # ----------------------------------------------------------- snowflake
-@tool("run_sql",
-      {"type": "object", "properties": {"query": {"type": "string"}},
-       "required": ["query"]},
-      mutating=True)
+@tool(
+    "run_sql",
+    {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+    mutating=True,
+)
 def run_sql(query: str) -> str:
     if not query or not query.strip():
         return "error: empty SQL query"
@@ -262,11 +275,13 @@ def run_sql(query: str) -> str:
             rows = cur.fetchmany(100)
             cols = [c[0] for c in cur.description] if cur.description else []
             total_rows = cur.rowcount or len(rows)
-        result = json.dumps({"columns": cols, "rows": rows,
-                            "total_rows": total_rows}, default=str, indent=2)
+        result = json.dumps(
+            {"columns": cols, "rows": rows, "total_rows": total_rows},
+            default=str,
+            indent=2,
+        )
         if len(result) > 4096:
-            result = result[:4096] + \
-                f"\n\u2026[truncated; {total_rows} rows total]"
+            result = result[:4096] + f"\n\u2026[truncated; {total_rows} rows total]"
         return result
     except Exception as e:
         return f"error: SQL execution failed: {type(e).__name__}: {e}"

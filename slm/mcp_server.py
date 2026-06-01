@@ -45,16 +45,16 @@ def _ok(rid: Any, result: dict) -> None:
 
 
 def _err(rid: Any, code: int, message: str) -> None:
-    _send({"jsonrpc": "2.0", "id": rid, "error": {
-          "code": code, "message": message}})
+    _send({"jsonrpc": "2.0", "id": rid, "error": {"code": code, "message": message}})
 
 
 def _tool_list() -> list[dict]:
     out = []
     for spec in TOOLS.values():
+        doc = (spec.fn.__doc__ or spec.name).strip().split("\n")[0]
         out.append({
             "name": spec.name,
-            "description": (spec.fn.__doc__ or spec.name).strip().split("\n")[0],
+            "description": doc,
             "inputSchema": spec.schema,
         })
     return out
@@ -80,8 +80,7 @@ def _handle(req: dict) -> None:
             _err(rid, -32001, "FREEZE active — all tools halted")
             return
         try:
-            check_hard_blocks(json.dumps(
-                {"name": name, "args": args}), where="mcp_call")
+            check_hard_blocks(json.dumps({"name": name, "args": args}), where="mcp_call")
             result = dispatch(name, args)
             check_hard_blocks(result, where="mcp_result")
             _ok(rid, {"content": [{"type": "text", "text": result}]})

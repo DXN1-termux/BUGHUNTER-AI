@@ -597,6 +597,8 @@ Full threat model: [SECURITY.md](SECURITY.md)
 | `slm setup` | **Interactive wizard** — model size (0.5B/1B/2B), scope, features, tools |
 | `slm init` | Non-interactive defaults |
 | `slm` | Interactive REPL |
+| `slm chat` | Alias for interactive REPL |
+| `slm chat-web` | **Web-based chat interface** (Flask) |
 | `slm --tui` | Full-screen Textual UI |
 | `slm --version` | Print version |
 | `slm "…"` | One-shot |

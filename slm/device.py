@@ -18,11 +18,43 @@ from dataclasses import dataclass
 
 @dataclass
 class Device:
-    tier: str            # mobile | desktop | workstation
+    tier: str
     ram_mb: int
     cores: int
     has_gpu: bool
-    platform: str        # mobile | linux | macos | windows | unknown
+    platform: str
+
+    def get_stats(self) -> dict:
+        """Get real-time usage stats for TUI monitoring."""
+        stats = {
+            "cpu_load": self._get_cpu_load(),
+            "ram_used_mb": self._get_ram_used(),
+            "ram_total_mb": self.ram_mb,
+            "status": "OPERATIONAL"
+        }
+        return stats
+
+    def _get_cpu_load(self) -> float:
+        try:
+            # Simple 1-second average if possible, else instant
+            if platform.system() == "Linux":
+                with open("/proc/loadavg") as f:
+                    return float(f.read().split()[0]) * 100 / self.cores
+        except Exception:
+            pass
+        return 0.0
+
+    def _get_ram_used(self) -> int:
+        try:
+            if platform.system() == "Linux":
+                with open("/proc/meminfo") as f:
+                    m = {line.split()[0]: int(line.split()[1]) for line in f}
+                    total = m.get("MemTotal:", 0)
+                    avail = m.get("MemAvailable:", 0)
+                    return (total - avail) // 1024
+        except Exception:
+            pass
+        return 0
 
 
 def _ram_mb() -> int:

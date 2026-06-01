@@ -79,19 +79,43 @@ def _install_one(tool: str, pm: str) -> bool:
     cmd_map = {
         "pkg": {
             "nmap": ["pkg", "install", "-y", "nmap"],
-            "subfinder": ["go", "install", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"],
+            "subfinder": [
+                "go",
+                "install",
+                "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+            ],
             "httpx": ["go", "install", "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
-            "nuclei": ["go", "install", "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"],
+            "nuclei": [
+                "go",
+                "install",
+                "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
+            ],
             "ffuf": ["go", "install", "github.com/ffuf/ffuf/v2@latest"],
-            "katana": ["go", "install", "github.com/projectdiscovery/katana/cmd/katana@latest"],
+            "katana": [
+                "go",
+                "install",
+                "github.com/projectdiscovery/katana/cmd/katana@latest",
+            ],
         },
         "apt": {
             "nmap": ["sudo", "apt-get", "install", "-y", "nmap"],
             "ffuf": ["sudo", "apt-get", "install", "-y", "ffuf"],
-            "subfinder": ["go", "install", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"],
+            "subfinder": [
+                "go",
+                "install",
+                "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+            ],
             "httpx": ["go", "install", "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
-            "nuclei": ["go", "install", "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"],
-            "katana": ["go", "install", "github.com/projectdiscovery/katana/cmd/katana@latest"],
+            "nuclei": [
+                "go",
+                "install",
+                "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
+            ],
+            "katana": [
+                "go",
+                "install",
+                "github.com/projectdiscovery/katana/cmd/katana@latest",
+            ],
         },
         "brew": {
             "nmap": ["brew", "install", "nmap"],

@@ -86,23 +86,23 @@ def usage_stats() -> dict:
 def format_usage() -> str:
     s = usage_stats()
     if s["sessions"] == 0:
-        return "No sessions yet — run `slm` to start tracking usage."
+        return "No sessions yet - run `slm` to start tracking usage."
     lines = [
         "📊 Local usage stats",
         "",
-           sessions run       : {s['sessions']:,}",
-           tokens processed   : {s['input_tokens']:,} in / {s['output_tokens']:,} out",
-           tools called       : {s['tools_called']:,}",
-           compute time       : {s['compute_seconds']:.1f}s",
+        f"   sessions run       : {s['sessions']:,}",
+        f"   tokens processed   : {s['input_tokens']:,} in / {s['output_tokens']:,} out",
+        f"   tools called       : {s['tools_called']:,}",
+        f"   compute time       : {s['compute_seconds']:.1f}s",
         "",
-           ⚡ avg tok/s        : {s['avg_tok_s']}",
-           ⚡ recent tok/s     : {s['recent_tok_s']}  (last 10 sessions)",
-           ⚡ peak tok/s       : {s['peak_tok_s']}",
+        f"   ⚡ avg tok/s        : {s['avg_tok_s']}",
+        f"   ⚡ recent tok/s     : {s['recent_tok_s']}  (last 10 sessions)",
+        f"   ⚡ peak tok/s       : {s['peak_tok_s']}",
         "",
-           cost to you        : $0.00 (100% local, always)",
+        "   cost to you        : $0.00 (100% local, always)",
         "",
-        "   for reference only — same tokens on cloud would've been:",
+        "   for reference only - same tokens on cloud would've been:",
     ]
     for model, cost in s["cloud_equivalent_usd"].items():
-        lines.append(     {model:20}  ~${cost:.2f}")
+        lines.append(f"     {model:20}  ~${cost:.2f}")
     return "\n".join(lines)

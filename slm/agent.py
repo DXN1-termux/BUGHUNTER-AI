@@ -102,9 +102,10 @@ def _approx_tokens(messages: list[dict]) -> int:
 
 
 def _compress_history(
-        llm: LlamaClient,
-        history: list[dict],
-        keep_last: int = 4) -> list[dict]:
+    llm: LlamaClient,
+    history: list[dict],
+    keep_last: int = 4,
+) -> list[dict]:
     """Collapse everything except the last `keep_last` turns into a single
     assistant summary. Called only when history is large enough that it
     matters — otherwise returned unchanged."""
@@ -127,7 +128,9 @@ def _compress_history(
     except Exception:
         return history  # compression is best-effort
     return [
-        {"role": "user", "content": f"[summary of earlier turns]\n{summary}"}, *tail]
+        {"role": "user", "content": f"[summary of earlier turns]\n{summary}"},
+        *tail,
+    ]
 
 
 def _majority_call(raws: list[str]) -> Optional[str]:
@@ -153,19 +156,30 @@ def _majority_call(raws: list[str]) -> Optional[str]:
 
 
 class Agent:
-    def __init__(self, llm: LlamaClient, system_prompt: str,
-                 max_turns: int = 20, yolo: bool = False,
-                 skill_rag: bool = True, plan_first: bool = True,
-                 few_shot: bool = True, reflect: str = "auto",
-                 vote: int = 1, context_compress: bool = True,
-                 tier: str = "mobile", n_ctx: int = 1536):
+    def __init__(
+        self,
+        llm: LlamaClient,
+        system_prompt: str,
+        max_turns: int = 20,
+        yolo: bool = False,
+        skill_rag: bool = True,
+        plan_first: bool = True,
+        few_shot: bool = True,
+        reflect: str = "auto",
+        vote: int = 1,
+        context_compress: bool = True,
+        tier: str = "mobile",
+        n_ctx: int = 1536,
+    ):
         self.llm = llm
         # Inject authorization context so the base model stops nagging about
         # legitimate security work. The 4 hard-block categories are enforced
         # below this layer and cannot be bypassed regardless of prompt content.
-        self.base_system = inject_authorization(system_prompt) + \
-            "\n\n# Tool schemas\n" + \
-            json.dumps(get_tool_schemas(), indent=2)
+        self.base_system = (
+            inject_authorization(system_prompt)
+            + "\n\n# Tool schemas\n"
+            + json.dumps(get_tool_schemas(), indent=2)
+        )
         self.max_turns = max_turns
         self.yolo = yolo
         self.skill_rag = skill_rag
@@ -190,12 +204,15 @@ class Agent:
         if self.few_shot:
             system += _fewshot_block(user_msg)
         if self.plan_first:
-            system += ("\n\n# First-turn rule\n"
-                       "On your FIRST assistant turn for this user prompt, emit exactly:\n"
-                       "  <plan>1. step\\n2. step\\n...</plan>\n"
-                       "  <thought>why the first step</thought>\n"
-                       "  <tool_call>{...}</tool_call>\n"
-                       "On subsequent turns, omit <plan>.")
+            rule = (
+                "\n\n# First-turn rule\n"
+                "On your FIRST assistant turn for this user prompt, emit exactly:\n"
+                "  <plan>1. step\\n2. step\\n...</plan>\n"
+                "  <thought>why the first step</thought>\n"
+                "  <tool_call>{...}</tool_call>\n"
+                "On subsequent turns, omit <plan>."
+            )
+            system += rule
         return system
 
     def _maybe_compress(self) -> None:
@@ -211,9 +228,13 @@ class Agent:
         raws = []
         for i in range(self.vote):
             try:
-                raws.append(self.llm.complete(
-                    system, self.history,
-                    temperature=0.7 if i > 0 else 0.2))
+                raws.append(
+                    self.llm.complete(
+                        system,
+                        self.history,
+                        temperature=0.7 if i > 0 else 0.2,
+                    )
+                )
             except Exception:
                 continue
         if not raws:
@@ -227,15 +248,23 @@ class Agent:
             "If it correctly addresses the user's request, reply with exactly "
             "<confirm/>. Otherwise, reply with a corrected <final>...</final>."
         )
-        review_hist = self.history + [{
-            "role": "user",
-            "content": f"Candidate final answer:\n<final>{final_text}</final>\n\n"
-            f"Does this address the original user request? "
-            f"Reply <confirm/> or corrected <final>.",
-        }]
+        review_hist = self.history + [
+            {
+                "role": "user",
+                "content": (
+                    f"Candidate final answer:\n<final>{final_text}</final>\n\n"
+                    "Does this address the original user request? "
+                    "Reply <confirm/> or corrected <final>."
+                ),
+            }
+        ]
         try:
-            raw = self.llm.complete(critique_system, review_hist,
-                                    temperature=0.1, max_tokens=400)
+            raw = self.llm.complete(
+                critique_system,
+                review_hist,
+                temperature=0.1,
+                max_tokens=400,
+            )
         except Exception:
             return final_text
         if TAG_CONFIRM.search(raw):
@@ -250,20 +279,23 @@ class Agent:
             check_hard_blocks(user_msg, where="user_prompt")
         except HardBlockError as e:
             if e.category == "quarantine":
-                yield Event("final",
-                            f"🔒 Device quarantine active. Repeated hard-block "
-                            f"violations have triggered a cooldown. {e.match}. "
-                            f"Review ~/.slm/traces/hardblock.log for the attempts "
-                            f"this device made.")
+                msg = (
+                    f"🔒 Device quarantine active. Repeated hard-block "
+                    f"violations have triggered a cooldown. {e.match}. "
+                    f"Review ~/.slm/traces/hardblock.log for the attempts "
+                    f"this device made."
+                )
+                yield Event("final", msg)
             elif e.category == "non_latin_bypass":
                 scripts = getattr(e, "detected_scripts", ["non-Latin"])
-                yield Event("final",
-                            f"This agent accepts English + European languages only "
-                            f"(Latin-script + Greek + emojis). Detected: "
-                            f"{', '.join(scripts)}. Please rephrase in English.")
+                msg = (
+                    f"This agent accepts English + European languages only "
+                    f"(Latin-script + Greek + emojis). Detected: "
+                    f"{', '.join(scripts)}. Please rephrase in English."
+                )
+                yield Event("final", msg)
             else:
-                yield Event("final",
-                            f"I can't help with that ({e.category}). This is a hard limit.")
+                yield Event("final", f"I can't help with that ({e.category}). This is a hard limit.")
             return
 
         system = self._build_system(user_msg)
@@ -286,15 +318,16 @@ class Agent:
             try:
                 check_leak(raw, canary, where="model_output")
             except InjectionDetected as e:
-                yield Event("error",
-                            f"🚨 prompt-injection detected (canary leaked @ {e.where}). "
-                            f"halting turn. see ~/.slm/canary_log.jsonl")
+                msg = (
+                    f"🚨 prompt-injection detected (canary leaked @ {e.where}). "
+                    f"halting turn. see ~/.slm/canary_log.jsonl"
+                )
+                yield Event("error", msg)
                 return
             try:
                 check_hard_blocks(raw, where="model_output")
             except HardBlockError as e:
-                yield Event("final",
-                            f"I can't help with that ({e.category}). This is a hard limit.")
+                yield Event("final", f"I can't help with that ({e.category}). This is a hard limit.")
                 return
 
             if first_turn and (pm := TAG_PLAN.search(raw)):
@@ -309,14 +342,19 @@ class Agent:
                 # of the 4 hard-block categories), retry once with stronger
                 # authorization context
                 if is_refusal(final_text) and not is_legitimate_refusal(
-                        user_msg, final_text):
+                    user_msg,
+                    final_text,
+                ):
                     if not getattr(self, "_retried_refusal", False):
                         self._retried_refusal = True
-                        yield Event("thought",
-                                    "[anti-nag] model over-refused in-scope work; retrying")
+                        yield Event(
+                            "thought",
+                            "[anti-nag] model over-refused in-scope work; retrying",
+                        )
                         # Drop the refusal and push a stronger re-ask
                         self.history.append(
-                            {"role": "user", "content": retry_prompt(user_msg)})
+                            {"role": "user", "content": retry_prompt(user_msg)}
+                        )
                         continue
                 self._retried_refusal = False
 
@@ -326,8 +364,13 @@ class Agent:
                 # Record exemplar for future few-shot
                 try:
                     from slm.session import record_exemplar
-                    record_exemplar(user_msg, plan_text,
-                                    final_text, tools_fired)
+
+                    record_exemplar(
+                        user_msg,
+                        plan_text,
+                        final_text,
+                        tools_fired,
+                    )
                 except Exception:
                     pass
                 yield Event("final", final_text)
@@ -335,13 +378,16 @@ class Agent:
 
             call = TAG_CALL.search(raw)
             if not call:
-                yield Event("error",
-                            "model produced no tool_call or final — retrying with nudge")
+                msg = "model produced no tool_call or final — retrying with nudge"
+                yield Event("error", msg)
                 self.history.append({"role": "assistant", "content": raw})
                 nudge = "Respond only with "
                 if first_turn and self.plan_first:
                     nudge += "<plan>…</plan> then "
-                nudge += "<thought>…</thought> then <tool_call>…</tool_call> or <final>…</final>."
+                nudge += (
+                    "<thought>…</thought> then <tool_call>…</tool_call> "
+                    "or <final>…</final>."
+                )
                 self.history.append({"role": "user", "content": nudge})
                 continue
 
@@ -352,8 +398,8 @@ class Agent:
             except Exception as e:
                 yield Event("error", f"malformed tool_call: {e}")
                 self.history.append({"role": "assistant", "content": raw})
-                self.history.append(
-                    {"role": "user", "content": f"Your last tool_call was not valid JSON: {e}. Retry."})
+                msg = f"Your last tool_call was not valid JSON: {e}. Retry."
+                self.history.append({"role": "user", "content": msg})
                 continue
 
             sig = name + json.dumps(args, sort_keys=True)
@@ -364,11 +410,17 @@ class Agent:
                 return
 
             if not self.yolo and needs_confirmation(name):
-                yield Event("confirm", f"{name}({json.dumps(args)})",
-                            meta={"name": name, "args": args})
+                yield Event(
+                    "confirm",
+                    f"{name}({json.dumps(args)})",
+                    meta={"name": name, "args": args},
+                )
 
-            yield Event("tool_call", f"{name}({json.dumps(args)})",
-                        meta={"name": name, "args": args})
+            yield Event(
+                "tool_call",
+                f"{name}({json.dumps(args)})",
+                meta={"name": name, "args": args},
+            )
             t0 = time.time()
             try:
                 result = dispatch(name, args)
@@ -378,9 +430,12 @@ class Agent:
             except HardBlockError as e:
                 self.history.append({"role": "assistant", "content": raw})
                 self.history.append(
-                    {"role": "user", "content": f"<tool_result>[blocked:{e.category}]</tool_result>"})
-                yield Event("final",
-                            f"Blocked content from tool ({e.category}); stopping.")
+                    {
+                        "role": "user",
+                        "content": f"<tool_result>[blocked:{e.category}]</tool_result>",
+                    }
+                )
+                yield Event("final", f"Blocked content from tool ({e.category}); stopping.")
                 return
             except (TimeoutError, subprocess.TimeoutExpired) as e:
                 result = f"error: tool timed out ({e})"
@@ -396,16 +451,18 @@ class Agent:
 
             self.history.append({"role": "assistant", "content": raw})
             self.history.append(
-                {"role": "user", "content": f"<tool_result>{result}</tool_result>"})
+                {"role": "user", "content": f"<tool_result>{result}</tool_result>"}
+            )
             first_turn = False
         yield Event("error", f"max_turns ({self.max_turns}) reached without <final>")
 
     # ------------------------------------------------------------------ autonomous goal pursuit
     def pursue(
-            self,
-            goal: str,
-            max_cycles: int = 5,
-            budget=None) -> Iterator[Event]:
+        self,
+        goal: str,
+        max_cycles: int = 5,
+        budget=None,
+    ) -> Iterator[Event]:
         """Keep taking turns until the goal is achieved, a hard-block fires,
         max_cycles is reached, or the budget is exhausted.
 
@@ -418,8 +475,11 @@ class Agent:
             budget.start()
         user_msg = goal
         for cycle in range(max_cycles):
-            yield Event("thought", f"[autonomous cycle {cycle + 1}/{max_cycles}] {user_msg}",
-                        meta={"cycle": cycle})
+            yield Event(
+                "thought",
+                f"[autonomous cycle {cycle + 1}/{max_cycles}] {user_msg}",
+                meta={"cycle": cycle},
+            )
             last_final = ""
             for ev in self.run(user_msg):
                 yield ev
@@ -430,8 +490,11 @@ class Agent:
                 if ev.kind in ("error",):
                     return
             if budget is not None and budget.exceeded():
-                yield Event("final",
-                            f"[budget exhausted: {budget.reason()} — stopping with partial results]")
+                msg = (
+                    f"[budget exhausted: {budget.reason()} — "
+                    "stopping with partial results]"
+                )
+                yield Event("final", msg)
                 return
             if not last_final:
                 return
@@ -442,18 +505,27 @@ class Agent:
                 "satisfies the goal, otherwise reply with "
                 "<next>one concrete next sub-task</next>."
             )
-            check_hist = [{
-                "role": "user",
-                "content": f"Goal: {goal}\n\nLatest answer:\n{last_final}",
-            }]
+            check_hist = [
+                {
+                    "role": "user",
+                    "content": f"Goal: {goal}\n\nLatest answer:\n{last_final}",
+                }
+            ]
             try:
-                verdict = self.llm.complete(check_system, check_hist,
-                                            temperature=0.1, max_tokens=200)
+                verdict = self.llm.complete(
+                    check_system,
+                    check_hist,
+                    temperature=0.1,
+                    max_tokens=200,
+                )
             except Exception:
                 return
             if re.search(r"<done\s*/>", verdict):
-                yield Event("final", f"[goal achieved after {cycle + 1} cycle(s)]",
-                            meta={"cycles": cycle + 1})
+                yield Event(
+                    "final",
+                    f"[goal achieved after {cycle + 1} cycle(s)]",
+                    meta={"cycles": cycle + 1},
+                )
                 return
             nxt = re.search(r"<next>(.*?)</next>", verdict, re.S)
             if not nxt:
