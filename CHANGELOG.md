@@ -7,22 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.3.1] — 2026-06-01
+## [2.3.2] — 2026-06-01
 
 ### ✨ Added
-- **bugbounty-ai-v2 framework**: Complete migration from `v1` to `v2`.
-- **Tri-Model Lineup**: Fine-tuned 0.5B, 1.5B, and 3B parameter models for device-specific performance tiers.
-- **Expanded Sandbox**: Enabled read/edit access to full Termux home directory (`/data/data/com.termux/files/home/`) with critical sub-paths (`.ssh`, `.config/gh`, `.env`, `.git`) explicitly denied.
+- **Setup Wizard Upgrade**: Improved device detection, input validation (URLs), and advanced configuration options (memory limit, log level).
+- **Interface Refinement**: Modernized TUI CSS theme and improved Setup Wizard UI with `rich` for better readability.
 
 ### 🔧 Changed
-- **Codebase Rewiring**: Systematic scan-and-replace updating all references from `bugbounty-ai` / `v1` to `bugbounty-ai-v2`.
-- **System Prompt**: Reconfigured `slm/prompts/system.md` to reflect a professional, technical security research persona.
-- **Training Pipeline**: Updated `train_lora.py` and infrastructure for tri-model support and custom dataset ingestion.
-- **Project Version**: Updated to v2.3.1 across `pyproject.toml` and documentation.
+- **Safety Architecture**: Hardened CSAM detection by moving from fragile regex YAML to native, deterministically compiled Python pattern sets.
+- **Project Structure**: Created `slm/core/hard_blocks_data.py` for centralized, robust pattern management.
 
 ### 🐛 Fixed
-- Resolved dependency resolution issues during Termux installation (`primp` build failure).
-- Hardened path enforcement in `executor_guards.py` to support expanded filesystem sandbox.
+- **Codebase Sanity**: Fixed syntax corruption (`—`, `©`, `·`) and resolved pervasive linting/formatting issues (PEP8 compliance).
+- **Exception Stability**: Fixed `HardBlockError` exception hierarchy issues causing test failures.
+- **Refusal Detection**: Fixed regex patterns in `slm/refusal.py` to correctly identify agent refusals.
+- **Test Suite**: Stabilized tests by refactoring `tests/test_safety.py` and adding quarantine-bypass test fixtures.
+
+## [2.3.1] — 2026-06-01
 
 
 ## [0.1.0] — 2026-04-27
