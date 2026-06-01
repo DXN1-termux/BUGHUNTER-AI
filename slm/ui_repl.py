@@ -14,10 +14,20 @@ SLM_HOME = pathlib.Path(os.environ.get(
     "SLM_HOME", pathlib.Path.home() / ".slm"))
 console = Console()
 
+THEME = {
+    "accent": "cyan",
+    "section": "bold blue",
+    "thought": "dim",
+    "tool": "cyan",
+    "result": "green",
+    "final": "bold white",
+    "error": "red",
+}
 
-def _ask_confirm() -> bool:
+
+def _ask_confirm(session: PromptSession) -> bool:
     try:
-        ans = input("  proceed? [Y/n] ").strip().lower()
+        ans = session.prompt("  [?] Proceed? [Y/n]: ").strip().lower()
         return ans in ("", "y", "yes")
     except (EOFError, KeyboardInterrupt):
         return False
@@ -28,31 +38,32 @@ def _slash(cmd: str, agent: Agent) -> bool:
         return False
     if cmd == "/clear":
         agent.history.clear()
-        console.print("[dim]history cleared[/dim]")
+        console.print(f"[{THEME['accent']}]history cleared[/]")
     elif cmd == "/tools":
         from slm.tools import TOOLS
         for t in TOOLS.values():
             console.print(
-                f" [cyan]{t.name}[/cyan]  mutating={t.mutating} scope={t.needs_scope}")
+                f" [{THEME['accent']}]{t.name}[/]  mutating={t.mutating} scope={t.needs_scope}")
     elif cmd == "/freeze":
         (SLM_HOME / "FREEZE").touch()
-        console.print("[red]FREEZE set — all tools halted[/red]")
+        console.print(f"[{THEME['error']}]FREEZE set — all tools halted[/]")
     elif cmd == "/unfreeze":
         (SLM_HOME / "FREEZE").unlink(missing_ok=True)
-        console.print("[green]FREEZE cleared[/green]")
+        console.print(f"[{THEME['ok']}]FREEZE cleared[/]")
     elif cmd.startswith("/scope"):
         console.print((SLM_HOME / "scope.yaml").read_text())
     else:
-        console.print(f"[yellow]unknown: {cmd}[/yellow]")
+        console.print(f"[{THEME['error']}]unknown: {cmd}[/]")
     return True
 
 
 def run_repl(agent: Agent):
     hist = FileHistory(str(SLM_HOME / "history"))
     session = PromptSession(history=hist)
-    console.print(Panel.fit(
+    console.print(Panel(
         "slm-agent  —  type /help, /tools, /scope, /freeze, /exit",
-        style="bold blue"))
+        style=THEME['section']))
+    
     while True:
         try:
             line = session.prompt("you ▸ ")
@@ -64,41 +75,34 @@ def run_repl(agent: Agent):
             if not _slash(line.strip(), agent):
                 break
             continue
+            
         for e in agent.run(line):
             if e.kind == "plan":
-                console.print(Panel(e.content, title="plan", style="magenta"))
+                console.print(Panel(e.content, title="PLAN", style="magenta"))
             elif e.kind == "thought":
-                console.print(Panel(e.content, title="thought", style="dim"))
+                console.print(Panel(e.content, title="THOUGHT", style=THEME['thought']))
             elif e.kind == "confirm":
                 console.print(Panel(e.content,
-                                    title=f"confirm {e.meta.get('name', '')}?",
+                                    title=f"CONFIRM {e.meta.get('name', '')}?",
                                     style="yellow"))
-                ans = _ask_confirm()
-                if not ans:
-                    console.print("[yellow]denied by user[/yellow]")
+                if not _ask_confirm(session):
+                    console.print(f"[{THEME['error']}]denied by user[/]")
                     break
             elif e.kind == "tool_call":
                 console.print(
                     Panel(
                         e.content,
-                        title=f"tool: {
-                            e.meta.get(
-                                'name',
-                                '')}",
-                        style="cyan"))
+                        title=f"CALL: {e.meta.get('name', '')}",
+                        style=THEME['tool']))
             elif e.kind == "tool_result":
-                body = e.content if len(
-                    e.content) < 1500 else e.content[:1500] + "…"
+                body = e.content if len(e.content) < 1500 else e.content[:1500] + "…"
                 console.print(
                     Panel(
                         body,
-                        title=f"result ({
-                            e.meta.get(
-                                'dt',
-                                0):.1f}s)",
-                        style="green"))
+                        title=f"RESULT ({e.meta.get('dt', 0):.1f}s)",
+                        style=THEME['result']))
             elif e.kind == "final":
                 console.print(
-                    Panel(Text(e.content), title="final", style="bold white"))
+                    Panel(Text(e.content), title="FINAL", style=THEME['final']))
             elif e.kind == "error":
-                console.print(f"[red]error:[/red] {e.content}")
+                console.print(f"[{THEME['error']}]error:[/] {e.content}")
