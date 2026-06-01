@@ -553,6 +553,7 @@ def _is_forbidden(target: pathlib.Path) -> tuple[bool, str]:
     """Check if a resolved path is in the hardcoded forbidden set.
     Returns (forbidden, reason)."""
     s = str(target)
+    home = str(pathlib.Path.home().resolve())
 
     # Immutable safety modules (both in the source tree and in ~/.slm)
     if target.name in _SAFETY_MODULE_NAMES:
@@ -583,9 +584,16 @@ def _is_forbidden(target: pathlib.Path) -> tuple[bool, str]:
     if "/.github/workflows/" in s or "/.github/ISSUE_TEMPLATE/" in s:
         return True, ".github/"
 
-    # System paths
-    for sp in ("/etc", "/sys", "/proc", "/dev",
-               str(pathlib.Path.home() / ".ssh")):
+    # Explicit sensitive sub-paths within HOME
+    for sp in (os.path.join(home, ".ssh"),
+               os.path.join(home, ".config/gh"),
+               os.path.join(home, ".env"),
+               os.path.join(home, ".git")):
+        if s.startswith(sp):
+            return True, f"sensitive home path: {sp}"
+
+    # System paths outside HOME
+    for sp in ("/etc", "/sys", "/proc", "/dev"):
         if s.startswith(sp):
             return True, sp
 

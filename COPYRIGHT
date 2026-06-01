@@ -9,7 +9,7 @@
                     COPYRIGHT & TRADEMARK NOTICE
 ================================================================================
 
-BUGHUNTER-AI, bugbounty-ai-v1, and slm-agent are original works authored
+BUGHUNTER-AI, bugbounty-ai-v2-v1, and slm-agent are original works authored
 by DXN10DAY.
 
           Copyright (c) 2026  DXN10DAY.  All rights reserved.
@@ -25,7 +25,7 @@ This Copyright notice applies to:
     ·  All markdown documentation (README, SECURITY, CONTRIBUTING,
        CHANGELOG, CODE_OF_CONDUCT, LICENSE_*)
     ·  All training, eval, and installer scripts
-    ·  The bugbounty-ai-v1 model family (0.5B / 1B / 2B) weights, quants,
+    ·  The bugbounty-ai-v2-v1 model family (0.5B / 1B / 2B) weights, quants,
        tokenizer, imatrix calibration, and training recipes
     ·  The ReAct prompt format, the hard-block regex library, the canary
        detection pattern, the hash-chain provenance protocol, and the
@@ -35,7 +35,7 @@ License: MIT + Privacy Preservation License v1.0 + Ultra Anti-CSAM
 Covenant v1.1.  See LICENSE, LICENSE_PRIVACY.md, LICENSE_ANTI_CSAM.md.
 
 Trademarks:
-  BUGHUNTER-AI, bugbounty-ai, the "A.I. on your own hardware" tagline,
+  BUGHUNTER-AI, bugbounty-ai-v2, the "A.I. on your own hardware" tagline,
   and the ASCII banner logo are trademarks of DXN10DAY.  You may reference
   the project by name and link to it.  You may NOT use the name or logo
   for derivative works that materially weaken the safety posture, the

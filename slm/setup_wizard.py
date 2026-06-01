@@ -28,7 +28,7 @@ console = Console()
 
 
 # ---------------------------------------------------------- model catalog
-# bugbounty-ai comes in 3 sizes × 3 quants. Users pick size (capability),
+# bugbounty-ai-v2 comes in 3 sizes × 3 quants. Users pick size (capability),
 # then the tier auto-picks the quant (speed/RAM fit for their device).
 @dataclass
 class ModelChoice:
@@ -44,62 +44,62 @@ class ModelChoice:
 CATALOG = [
     # 0.5B — fastest, lightest. Recommended for phones + low-end laptops.
     ModelChoice(
-        name="bugbounty-ai-v1-0.5b-mobile",
-        display="bugbounty-ai 0.5B · IQ2_XS  (~300 MB)",
+        name="bugbounty-ai-v2-v1-0.5b-mobile",
+        display="bugbounty-ai-v2 0.5B · IQ2_XS  (~300 MB)",
         size_gb=0.3, tier="mobile", base_size="0.5B",
-        default_filename="bugbounty-ai-v1-0.5b.IQ2_XS.gguf",
+        default_filename="bugbounty-ai-v2-v1-0.5b.IQ2_XS.gguf",
         tok_s_estimate="22–55 tok/s"),
     ModelChoice(
-        name="bugbounty-ai-v1-0.5b-desktop",
-        display="bugbounty-ai 0.5B · Q4_K_M  (~450 MB)",
+        name="bugbounty-ai-v2-v1-0.5b-desktop",
+        display="bugbounty-ai-v2 0.5B · Q4_K_M  (~450 MB)",
         size_gb=0.45, tier="desktop", base_size="0.5B",
-        default_filename="bugbounty-ai-v1-0.5b.Q4_K_M.gguf",
+        default_filename="bugbounty-ai-v2-v1-0.5b.Q4_K_M.gguf",
         tok_s_estimate="60–150 tok/s"),
     ModelChoice(
-        name="bugbounty-ai-v1-0.5b-workstation",
-        display="bugbounty-ai 0.5B · Q6_K  (~600 MB)",
+        name="bugbounty-ai-v2-v1-0.5b-workstation",
+        display="bugbounty-ai-v2 0.5B · Q6_K  (~600 MB)",
         size_gb=0.6, tier="workstation", base_size="0.5B",
-        default_filename="bugbounty-ai-v1-0.5b.Q6_K.gguf",
+        default_filename="bugbounty-ai-v2-v1-0.5b.Q6_K.gguf",
         tok_s_estimate="150–400 tok/s"),
 
     # 1B — balanced. Better reasoning, still runs on modern phones.
     ModelChoice(
-        name="bugbounty-ai-v1-1b-mobile",
-        display="bugbounty-ai 1B · IQ2_XS  (~600 MB)",
+        name="bugbounty-ai-v2-v1-1b-mobile",
+        display="bugbounty-ai-v2 1B · IQ2_XS  (~600 MB)",
         size_gb=0.6, tier="mobile", base_size="1B",
-        default_filename="bugbounty-ai-v1-1b.IQ2_XS.gguf",
+        default_filename="bugbounty-ai-v2-v1-1b.IQ2_XS.gguf",
         tok_s_estimate="12–30 tok/s"),
     ModelChoice(
-        name="bugbounty-ai-v1-1b-desktop",
-        display="bugbounty-ai 1B · Q4_K_M  (~900 MB)",
+        name="bugbounty-ai-v2-v1-1b-desktop",
+        display="bugbounty-ai-v2 1B · Q4_K_M  (~900 MB)",
         size_gb=0.9, tier="desktop", base_size="1B",
-        default_filename="bugbounty-ai-v1-1b.Q4_K_M.gguf",
+        default_filename="bugbounty-ai-v2-v1-1b.Q4_K_M.gguf",
         tok_s_estimate="30–90 tok/s"),
     ModelChoice(
-        name="bugbounty-ai-v1-1b-workstation",
-        display="bugbounty-ai 1B · Q6_K  (~1.3 GB)",
+        name="bugbounty-ai-v2-v1-1b-workstation",
+        display="bugbounty-ai-v2 1B · Q6_K  (~1.3 GB)",
         size_gb=1.3, tier="workstation", base_size="1B",
-        default_filename="bugbounty-ai-v1-1b.Q6_K.gguf",
+        default_filename="bugbounty-ai-v2-v1-1b.Q6_K.gguf",
         tok_s_estimate="90–220 tok/s"),
 
     # 2B — strongest. Needs flagship phones or real hardware.
     ModelChoice(
-        name="bugbounty-ai-v1-2b-mobile",
-        display="bugbounty-ai 2B · IQ2_XS  (~1.1 GB)  ⚠ needs 3+ GB RAM",
+        name="bugbounty-ai-v2-v1-2b-mobile",
+        display="bugbounty-ai-v2 2B · IQ2_XS  (~1.1 GB)  ⚠ needs 3+ GB RAM",
         size_gb=1.1, tier="mobile", base_size="2B",
-        default_filename="bugbounty-ai-v1-2b.IQ2_XS.gguf",
+        default_filename="bugbounty-ai-v2-v1-2b.IQ2_XS.gguf",
         tok_s_estimate="5–15 tok/s"),
     ModelChoice(
-        name="bugbounty-ai-v1-2b-desktop",
-        display="bugbounty-ai 2B · Q4_K_M  (~1.8 GB)",
+        name="bugbounty-ai-v2-v1-2b-desktop",
+        display="bugbounty-ai-v2 2B · Q4_K_M  (~1.8 GB)",
         size_gb=1.8, tier="desktop", base_size="2B",
-        default_filename="bugbounty-ai-v1-2b.Q4_K_M.gguf",
+        default_filename="bugbounty-ai-v2-v1-2b.Q4_K_M.gguf",
         tok_s_estimate="18–50 tok/s"),
     ModelChoice(
-        name="bugbounty-ai-v1-2b-workstation",
-        display="bugbounty-ai 2B · Q6_K  (~2.5 GB)",
+        name="bugbounty-ai-v2-v1-2b-workstation",
+        display="bugbounty-ai-v2 2B · Q6_K  (~2.5 GB)",
         size_gb=2.5, tier="workstation", base_size="2B",
-        default_filename="bugbounty-ai-v1-2b.Q6_K.gguf",
+        default_filename="bugbounty-ai-v2-v1-2b.Q6_K.gguf",
         tok_s_estimate="50–130 tok/s"),
 ]
 
@@ -108,13 +108,13 @@ def _size_options() -> list[tuple[str, str, str]]:
     """Returns (size_id, display, recommendation) tuples."""
     return [
         ("0.5B",
-         "bugbounty-ai 0.5B — fastest, lightest (300 MB–600 MB)",
+         "bugbounty-ai-v2 0.5B — fastest, lightest (300 MB–600 MB)",
          "recommended for: phones, older laptops, Pi, fast iteration"),
         ("1B",
-         "bugbounty-ai 1B — balanced (600 MB–1.3 GB)",
+         "bugbounty-ai-v2 1B — balanced (600 MB–1.3 GB)",
          "recommended for: flagship phones, modern laptops · better multi-step reasoning"),
         ("2B",
-         "bugbounty-ai 2B — strongest (1.1 GB–2.5 GB)",
+         "bugbounty-ai-v2 2B — strongest (1.1 GB–2.5 GB)",
          "recommended for: workstations / top-tier phones · best accuracy on complex bugs"),
     ]
 
@@ -191,7 +191,7 @@ def run_setup():
 
     # 2. MODEL ----------------------------------------------------------------
     _section("2. model size")
-    console.print("[bold]bugbounty-ai[/bold] (MIT) — choose capability vs. speed.\n")
+    console.print("[bold]bugbounty-ai-v2[/bold] (MIT) — choose capability vs. speed.\n")
 
     sizes = _size_options()
     size_display = []

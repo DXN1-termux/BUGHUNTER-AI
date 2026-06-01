@@ -7,7 +7,7 @@
 ![BUGHUNTER-AI](https://img.shields.io/badge/BUGHUNTER--AI-red?style=for-the-badge&logo=ai)
 [![Version](https://img.shields.io/badge/v2.3-stable-brightgreen?style=for-the-badge)](#quickstart)
 [![Copyright](https://img.shields.io/badge/©_2026-DXN10DAY-ff69b4?style=for-the-badge)](COPYRIGHT)
-[![Model](https://img.shields.io/badge/model-bugbounty--ai--v1-8A2BE2?style=for-the-badge)](#the-model)
+[![Model](https://img.shields.io/badge/model-bugbounty--ai--v2-8A2BE2?style=for-the-badge)](#the-model)
 [![Tiers](https://img.shields.io/badge/mobile_%C2%B7_desktop_%C2%B7_workstation-auto-6f42c1?style=for-the-badge)](#tiers)
 [![RAM](https://img.shields.io/badge/RAM-350_MB_%E2%86%92_12_GB-brightgreen?style=for-the-badge)](#performance)
 [![Speed](https://img.shields.io/badge/20%E2%80%93300_tok%2Fs-brightgreen?style=for-the-badge)](#performance)
@@ -20,7 +20,7 @@
 
 ## ✨ What is this
 
-**BUGHUNTER-AI** is an agentic command-line assistant for authorized security research, built around **`bugbounty-ai-v1`** — a purpose-trained small language model that runs **entirely on your device**. No cloud. No API keys. No telemetry.
+**BUGHUNTER-AI** is an agentic command-line assistant for authorized security research, built around **`bugbounty-ai-v2`** — a purpose-trained small language model that runs **entirely on your device**. No cloud. No API keys. No telemetry.
 
 The model thinks. Real tools on your machine do the work. Everything is **MIT** — fork it, ship it, own it.
 
@@ -125,7 +125,7 @@ slm pursue "recon acme.test and report anything that looks suspicious"
 | 🤖 | **24/7 Discord bot mode** | Scope-gated autonomous moderation with hard-blocks active |
 | ☁️ | **Cloud passthrough** | Route to Claude Opus / GPT-4o when local brain needs help |
 | 🧩 | **YAML workflows + task queue** | Deterministic recipes + background goal processing |
-| 📏 | **0.5B / 1B / 2B model sizes** | Pick capability vs speed — each with 3 tier-appropriate quants |
+| 📏 | 0.5B / 1.5B / 3B model sizes | Pick capability vs speed — each with 3 tier-appropriate quants |
 | 🧪 | **Budget-aware autonomous mode** | `slm pursue --max-seconds 3600` with graceful early exit |
 | 📋 | **MCP server** | Plug into Claude Desktop / Cursor as a tool provider |
 | 🔑 | **HMAC audit logs** | Even with disk leak, attackers can't dictionary-attack your audit trail |
@@ -142,14 +142,27 @@ Full details in [CHANGELOG.md](CHANGELOG.md).
 
 | | |
 |---|---|
-| **Name** | `bugbounty-ai-v1` |
+| **Name** | `bugbounty-ai-v2` (Family) |
+| **Sizes** | 0.5B · 1.5B · 3B |
 | **License** | **MIT** |
 | **Architecture** | Decoder-only transformer · GQA · SwiGLU · RoPE · RMSNorm |
-| **Training** | LoRA SFT on ~5 k ReAct traces + imatrix calibration on bug-bounty corpus |
-| **Format** | GGUF (three quants) |
+| **Training** | LoRA SFT on custom security dataset + imatrix calibration |
+| **Format** | GGUF (tri-tier quant alignment) |
 | **Runtime** | llama.cpp (MIT) |
 
 </div>
+
+### The v2 Tri-Model Family
+We have moved beyond a single model to a tiered family, each specifically fine-tuned for `BUGHUNTER-AI v2`:
+
+| Model Size | Optimized For | Training Focus | Quant Alignment |
+|---|---|---|---|
+| **0.5B** | Mobile / Edge | Speed, low-latency recon | IQ2_XS |
+| **1.5B** | Desktop / Laptop | Balanced reasoning, multi-step planning | Q4_K_M |
+| **3B** | Workstation / Server | Deep analysis, exploit generation, PoCs | Q6_K |
+
+Training artifacts and checkpoint states for all three models are generated in the `training/` pipeline. 
+Use `slm setup` to auto-detect your hardware and pull the optimized `bugbounty-ai-v2-{size}.gguf`.
 
 ### Quant line-up
 

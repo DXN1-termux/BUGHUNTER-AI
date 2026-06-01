@@ -50,7 +50,7 @@
   <!-- Layer 3: Model -->
   <rect x="690" y="90" width="180" height="70" rx="8" fill="#bb9af7" opacity="0.2" stroke="#bb9af7" stroke-width="2"/>
   <text x="780" y="110" class="title" text-anchor="middle" fill="#bb9af7">🧠 3. Model</text>
-  <text x="780" y="128" class="sub" text-anchor="middle">bugbounty-ai-v1</text>
+  <text x="780" y="128" class="sub" text-anchor="middle">bugbounty-ai-v2-v1</text>
   <text x="780" y="142" class="sub" text-anchor="middle">ReAct · 0.5B params</text>
   <text x="780" y="155" class="sub" text-anchor="middle" font-size="9" fill="#9ece6a">100% local</text>
 

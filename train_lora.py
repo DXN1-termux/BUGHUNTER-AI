@@ -56,7 +56,7 @@ def main():
         args.lora_r = {"0.5B": 16, "1B": 32, "2B": 64}[args.size]
     grad_accum = {"0.5B": 4, "1B": 8, "2B": 16}[args.size]
 
-    print(f"Training bugbounty-ai {args.size} from {base}")
+    print(f"Training bugbounty-ai-v2 {args.size} from {base}")
     print(f"  batch_size={args.batch_size} · lora_r={args.lora_r} · grad_accum={grad_accum}")
 
     tok = AutoTokenizer.from_pretrained(base, trust_remote_code=True)

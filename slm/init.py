@@ -55,33 +55,31 @@ def first_run():
     if not (SLM_HOME / "config.toml").exists():
         _atomic_write(SLM_HOME / "config.toml", f"""
 # tier = "auto" picks mobile / desktop / workstation based on RAM + GPU.
-# Model is bugbounty-ai (MIT). Single model, three quants, one per tier.
+# Model is bugbounty-ai-v2 (MIT). Tri-model family (0.5B, 1.5B, 3B).
 [model]
 tier     = "auto"
-name     = "bugbounty-ai-v1"
+name     = "bugbounty-ai-v2"
 license  = "MIT"
 backend  = "llama_cpp"
-primary  = "{models}/bugbounty-ai-v1.IQ2_XS.gguf"
-fallback = "{models}/bugbounty-ai-v1.IQ3_XXS.gguf"
 
 [model.mobile]
-path       = "{models}/bugbounty-ai-v1.IQ2_XS.gguf"
+path       = "{models}/bugbounty-ai-v2-0.5b.IQ2_XS.gguf"
 n_ctx      = 1536
-n_threads  = 6
+n_threads  = 4
 n_batch    = 256
 flash_attn = true
 
 [model.desktop]
-path       = "{models}/bugbounty-ai-v1.Q4_K_M.gguf"
+path       = "{models}/bugbounty-ai-v2-1.5b.Q4_K_M.gguf"
 n_ctx      = 4096
 n_threads  = 8
 n_batch    = 512
 flash_attn = true
 
 [model.workstation]
-path       = "{models}/bugbounty-ai-v1.Q6_K.gguf"
+path       = "{models}/bugbounty-ai-v2-3b.Q6_K.gguf"
 n_ctx      = 8192
-n_threads  = 12
+n_threads  = 16
 n_batch    = 1024
 flash_attn = true
 

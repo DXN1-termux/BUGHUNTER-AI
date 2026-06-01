@@ -7,54 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.3.0] — 2026-04-29
-
-### 🔒 Security
-- **CSAM hard block hardened to 0% bypass rate**
-  - Tier 1: 5 hardcoded Python regex patterns that fire even if `hard_blocks.yaml` is tampered with
-  - Tier 2: Expanded YAML patterns from 2 → 9 rules (terminology, euphemisms, codewords, contextual, age-explicit, AI-generation requests)
-  - Unicode normalization (NFKC) + leetspeak folding + separator stripping defeats `cs4m`, `ｃｓａｍ`, `c.s.a.m`, `l0l1c0n`, and zero-width obfuscation
-  - Path/filename scanning via `resolve_safe_path`
-  - 8 new unit tests + 10 new red-team eval cases covering every known bypass vector
-- Shell injection via unsanitized `extra` param in bug-bounty tool wrappers (`nmap`, `nuclei`, `ffuf`, etc.) — now double-quoted via `shlex.split` + `shlex.quote`
-- Stale `slm/prompts/core/` directory with weaker safety checks replaced with `raise ImportError` stubs
-- YAML load failures no longer disable protection (hardcoded layer still fires)
+## [2.3.1] — 2026-06-01
 
 ### ✨ Added
-- **Confirmation prompts for mutating tools** in non-yolo mode — REPL asks `proceed? [Y/n]` before destructive operations
-- **Tool result caching** — 60s TTL cache for non-mutating, non-scope tools
-- **Session persistence** — `save_history()` / `restore_history()` for crash recovery
-- **Retry with backoff** for `web_search` (3 attempts, exponential)
-- **Lazy imports** for optional deps (`duckduckgo_search`, `beautifulsoup4`) with helpful error messages
-- **Structured truncation metadata** — tool results now report byte count, line count, total rows when truncated
-- **Input validation** for every tool (empty strings, None values, file existence checks)
-- **`slm --version`** flag
-- **3 example skills** shipped by default: `recon_subdomains`, `vuln_scan`, `port_audit`
-- **`tests/` directory** with 25+ unit tests (safety, scope, tools)
-- **Expanded eval suite**: functional 10 → 30, red-team 10 → 30 cases
-- **GitHub Actions CI** (lint + test + safety verification)
-- **Issue & PR templates**, `CONTRIBUTING.md`, `SECURITY.md`
-- **Dockerfile** for containerized deployment
-- **One-liner install** via `curl | bash`
-- **Animated SVG demo** in README (Tokyo Night themed)
-- **24-hour WhatsApp support** channel
+- **bugbounty-ai-v2 framework**: Complete migration from `v1` to `v2`.
+- **Tri-Model Lineup**: Fine-tuned 0.5B, 1.5B, and 3B parameter models for device-specific performance tiers.
+- **Expanded Sandbox**: Enabled read/edit access to full Termux home directory (`/data/data/com.termux/files/home/`) with critical sub-paths (`.ssh`, `.config/gh`, `.env`, `.git`) explicitly denied.
 
 ### 🔧 Changed
-- `fetch_url` timeout: 15s → 20s with 5s connect timeout + content-type header
-- `run_sql`: 60s query timeout + 30s network timeout
-- `bench.py` now reads `n_threads` from per-tier config (was hardcoded `-t 6`)
-- `setup_wizard.py` fallback now resolves to next-lower-tier quant (was same as primary)
-- LLM client handles malformed JSON, missing choices, empty responses with retry
-- Agent loop gives typed errors (`TimeoutError`, `PermissionError`, `FileNotFoundError`) to the model
+- **Codebase Rewiring**: Systematic scan-and-replace updating all references from `bugbounty-ai` / `v1` to `bugbounty-ai-v2`.
+- **System Prompt**: Reconfigured `slm/prompts/system.md` to reflect a professional, technical security research persona.
+- **Training Pipeline**: Updated `train_lora.py` and infrastructure for tri-model support and custom dataset ingestion.
+- **Project Version**: Updated to v2.3.1 across `pyproject.toml` and documentation.
 
 ### 🐛 Fixed
-- `doctor.py` Termux check crashing on non-Linux (`uname -o` fails on macOS/Windows)
-- `eval/run_eval.py` redundant `parent.parent / "eval"` path resolution
-- `_resolve_tier()` in `cli.py` calling `detect()` twice
-- `_system_prompt()` crashing with `FileNotFoundError` if `~/.slm/system.md` missing
-- `pursue` command ignoring `confirm` events
-- `install.sh` referencing placeholder `EXAMPLE` URLs → now points to real GitHub repo
-- `list_dir` and `delete_file` missing input validation
+- Resolved dependency resolution issues during Termux installation (`primp` build failure).
+- Hardened path enforcement in `executor_guards.py` to support expanded filesystem sandbox.
+
 
 ## [0.1.0] — 2026-04-27
 
