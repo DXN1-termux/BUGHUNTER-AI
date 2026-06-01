@@ -1,6 +1,7 @@
 import re
 
-# Corrected regex patterns
+# Deterministic and strict CSAM detection patterns
+# These are purposely aggressive to prioritize child protection
 HARD_BLOCKS = {
     "terrorism": {
         "patterns": [
@@ -18,16 +19,18 @@ HARD_BLOCKS = {
     },
     "csam": {
         "patterns": [
-            r"(?i)\b(child|children|minor|minors|underage|under[- ]?age|under[\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b.{0,100}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip)\b",
-            r"(?i)\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b.{0,100}\b(child|children|minor|minors|underage|under[- ]?age|under[\s-]?18|pre[- ]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b",
-            r"(?i)\b(loli(con)?|shota(con)?|jailbait|cub\s*porn|pedo(phil(e|ia)?|bear)?|hebephil|ephebophil|mapt|nomap|map\s+community|kiddie\s*porn|kid\s*porn)\b",
-            r"(?i)\b(1[0-7]|[0-9])[\s-]?(y(ear)?s?[\s-]?o(ld)?|yo)\b.{0,60}\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate)\b",
-            r"(?i)\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate)\b.{0,60}\b(1[0-7]|[0-9])[\s-]?(y(ear)?s?[\s-]?o(ld)?|yo)\b",
-            r"(?i)\b(groom|seduce|lure|entice|coerce|blackmail|sextort)\b.{0,80}\b(child|minor|kid|teen|underage|young)\b",
-            r"(?i)\b(generate|create|draw|render|produce|make)\b.{0,40}\b(image|picture|photo|video|art|drawing)\b.{0,80}\b(child|minor|kid|underage|young\s+(girl|boy)|little\s+(girl|boy)|teen)\b.{0,80}\b(nude|naked|sexual|explicit|erotic|nsfw)\b",
-            r"(?i)\b(nude|naked|sexual|explicit|erotic|nsfw)\b.{0,80}\b(child|minor|kid|underage|young\s+(girl|boy)|little\s+(girl|boy)|teen)\b.{0,80}\b(image|picture|photo|video|art|drawing)\b",
-            r"(?i)\b(deepfake|ai[\s-]?generated|stable\s*diffusion|dalle?|midjourney|flux)\b.{0,80}\b(child|minor|kid|underage|teen)\b.{0,80}\b(nude|naked|sex|explicit|nsfw)\b",
-            r"(?i)\b(hurtcore|pthc|ptsc|r@ygold|raygold|kinderporn)\b"
+            # 1. Expanded Codeword/Slang Blocklist
+            r"(?i)\b(loli(con)?|shota(con)?|jailbait|cub[\s-]*porn|pedo(phil(e|ia)?|bear)?|hebephil|ephebophil|mapt|nomap|map[\s-]*community|kiddie[\s-]*porn|kid[\s-]*porn|hurtcore|pthc|ptsc|r@ygold|raygold|kinderporn)\b",
+            # 2. Stronger Contextual Proximity Detection
+            r"(?i)\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b.{0,200}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip|hentai|smut)\b",
+            r"(?i)\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|abuse|rape|grooming|solicit|lewd|intimate|undress|strip|hentai|smut)\b.{0,200}\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|preteen|kid|kids|infant|toddler|baby|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b",
+            # 3. Explicit Age-Based Triggers
+            r"(?i)\b(1[0-7]|[0-9])[\s-]?(y(ear)?s?[\s-]?o(ld)?|yo)\b.{0,100}\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate|fetish|molest|abuse|rape)\b",
+            r"(?i)\b(sex|porn|nude|naked|erotic|explicit|nsfw|intimate|fetish|molest|abuse|rape)\b.{0,100}\b(1[0-7]|[0-9])[\s-]?(y(ear)?s?[\s-]?o(ld)?|yo)\b",
+            # 4. Harmful Intent + CSAM Terms
+            r"(?i)\b(distribute|share|upload|download|find|acquire|find)\b.{0,100}\b(csam|csem|child[\s-]*porn|cp)\b",
+            # 5. Grooming/Seduction Patterns
+            r"(?i)\b(groom|seduce|lure|entice|coerce|blackmail|sextort)\b.{0,100}\b(child|minor|kid|teen|underage|young)\b"
         ]
     },
     "mass_harm": {

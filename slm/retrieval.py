@@ -1,6 +1,7 @@
 """Shared TF-IDF-ish token scoring used by skills & exemplar retrieval."""
 from __future__ import annotations
-import math, re
+import math
+import re
 from collections import Counter
 
 _TOKEN = re.compile(r"[A-Za-z0-9]{2,}")
@@ -19,7 +20,8 @@ def cosine(q_counts: Counter[str], d_counts: Counter[str]) -> float:
     return dot / (nq * nd) if nq and nd else 0.0
 
 
-def rank(query: str, docs: list[tuple[str, str]], k: int = 3) -> list[tuple[float, str, str]]:
+def rank(query: str, docs: list[tuple[str, str]],
+         k: int = 3) -> list[tuple[float, str, str]]:
     """docs = [(id, text), ...]; returns top-k by cosine, descending."""
     q = Counter(tokens(query))
     scored = []

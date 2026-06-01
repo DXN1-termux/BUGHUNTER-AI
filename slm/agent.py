@@ -9,7 +9,13 @@ Intelligence boosters (all config-gated in [agent]):
   - context_compress : summarize oldest turns when nearing n_ctx
 """
 from __future__ import annotations
-import json, os, pathlib, re, subprocess, time, tomllib
+import json
+import os
+import pathlib
+import re
+import subprocess
+import time
+import tomllib
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Iterator, Optional
@@ -26,7 +32,8 @@ from slm.refusal import (
     is_refusal, is_legitimate_refusal, inject_authorization, retry_prompt,
 )
 
-_SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+_SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 
 
 def _guardrail(key: str, default: int) -> int:
@@ -41,9 +48,9 @@ def _guardrail(key: str, default: int) -> int:
 
 
 TAG_THOUGHT = re.compile(r"<thought>(.*?)</thought>", re.S)
-TAG_CALL    = re.compile(r"<tool_call>(.*?)</tool_call>", re.S)
-TAG_FINAL   = re.compile(r"<final>(.*?)</final>", re.S)
-TAG_PLAN    = re.compile(r"<plan>(.*?)</plan>", re.S)
+TAG_CALL = re.compile(r"<tool_call>(.*?)</tool_call>", re.S)
+TAG_FINAL = re.compile(r"<final>(.*?)</final>", re.S)
+TAG_PLAN = re.compile(r"<plan>(.*?)</plan>", re.S)
 TAG_CONFIRM = re.compile(r"<confirm\s*/>", re.S)
 
 
@@ -65,7 +72,8 @@ def _skill_block(user_msg: str, k: int = 3) -> str:
     lines = [f"- {name}: {doc}" for name, doc in hits if doc]
     if not lines:
         return ""
-    return "\n\n# Relevant skills (retrieved; call via `run_skill`):\n" + "\n".join(lines)
+    return "\n\n# Relevant skills (retrieved; call via `run_skill`):\n" + \
+        "\n".join(lines)
 
 
 def _fewshot_block(user_msg: str, k: int = 2) -> str:
@@ -81,10 +89,11 @@ def _fewshot_block(user_msg: str, k: int = 2) -> str:
         blocks.append(
             f"### Past example\n"
             f"user: {h['user_msg']}\n"
-            f"<plan>{h.get('plan','')}</plan>\n"
+            f"<plan>{h.get('plan', '')}</plan>\n"
             f"<final>{h['final']}</final>"
         )
-    return "\n\n# Few-shot exemplars (similar past successful sessions):\n" + "\n\n".join(blocks)
+    return "\n\n# Few-shot exemplars (similar past successful sessions):\n" + \
+        "\n\n".join(blocks)
 
 
 def _approx_tokens(messages: list[dict]) -> int:
@@ -92,7 +101,10 @@ def _approx_tokens(messages: list[dict]) -> int:
     return sum(len(m.get("content", "")) for m in messages) // 4
 
 
-def _compress_history(llm: LlamaClient, history: list[dict], keep_last: int = 4) -> list[dict]:
+def _compress_history(
+        llm: LlamaClient,
+        history: list[dict],
+        keep_last: int = 4) -> list[dict]:
     """Collapse everything except the last `keep_last` turns into a single
     assistant summary. Called only when history is large enough that it
     matters — otherwise returned unchanged."""
@@ -104,7 +116,7 @@ def _compress_history(llm: LlamaClient, history: list[dict], keep_last: int = 4)
         "Summarize the following agent session in <= 12 lines. Keep any "
         "concrete findings, file paths, URLs, and tool-results that matter "
         "for the next turn. Drop small-talk.\n\n"
-        + "\n".join(f"{m['role']}: {m.get('content','')[:1200]}" for m in head)
+        + "\n".join(f"{m['role']}: {m.get('content', '')[:1200]}" for m in head)
     )
     try:
         summary = llm.complete(
@@ -114,7 +126,8 @@ def _compress_history(llm: LlamaClient, history: list[dict], keep_last: int = 4)
         )
     except Exception:
         return history  # compression is best-effort
-    return [{"role": "user", "content": f"[summary of earlier turns]\n{summary}"}, *tail]
+    return [
+        {"role": "user", "content": f"[summary of earlier turns]\n{summary}"}, *tail]
 
 
 def _majority_call(raws: list[str]) -> Optional[str]:
@@ -151,8 +164,8 @@ class Agent:
         # legitimate security work. The 4 hard-block categories are enforced
         # below this layer and cannot be bypassed regardless of prompt content.
         self.base_system = inject_authorization(system_prompt) + \
-                           "\n\n# Tool schemas\n" + \
-                           json.dumps(get_tool_schemas(), indent=2)
+            "\n\n# Tool schemas\n" + \
+            json.dumps(get_tool_schemas(), indent=2)
         self.max_turns = max_turns
         self.yolo = yolo
         self.skill_rag = skill_rag
@@ -177,14 +190,12 @@ class Agent:
         if self.few_shot:
             system += _fewshot_block(user_msg)
         if self.plan_first:
-            system += (
-                "\n\n# First-turn rule\n"
-                "On your FIRST assistant turn for this user prompt, emit exactly:\n"
-                "  <plan>1. step\\n2. step\\n...</plan>\n"
-                "  <thought>why the first step</thought>\n"
-                "  <tool_call>{...}</tool_call>\n"
-                "On subsequent turns, omit <plan>."
-            )
+            system += ("\n\n# First-turn rule\n"
+                       "On your FIRST assistant turn for this user prompt, emit exactly:\n"
+                       "  <plan>1. step\\n2. step\\n...</plan>\n"
+                       "  <thought>why the first step</thought>\n"
+                       "  <tool_call>{...}</tool_call>\n"
+                       "On subsequent turns, omit <plan>.")
         return system
 
     def _maybe_compress(self) -> None:
@@ -219,8 +230,8 @@ class Agent:
         review_hist = self.history + [{
             "role": "user",
             "content": f"Candidate final answer:\n<final>{final_text}</final>\n\n"
-                       f"Does this address the original user request? "
-                       f"Reply <confirm/> or corrected <final>.",
+            f"Does this address the original user request? "
+            f"Reply <confirm/> or corrected <final>.",
         }]
         try:
             raw = self.llm.complete(critique_system, review_hist,
@@ -297,14 +308,15 @@ class Agent:
                 # Anti-nag: if the model is refusing in-scope work (not one
                 # of the 4 hard-block categories), retry once with stronger
                 # authorization context
-                if is_refusal(final_text) and not is_legitimate_refusal(user_msg, final_text):
+                if is_refusal(final_text) and not is_legitimate_refusal(
+                        user_msg, final_text):
                     if not getattr(self, "_retried_refusal", False):
                         self._retried_refusal = True
                         yield Event("thought",
                                     "[anti-nag] model over-refused in-scope work; retrying")
                         # Drop the refusal and push a stronger re-ask
-                        self.history.append({"role": "user",
-                                             "content": retry_prompt(user_msg)})
+                        self.history.append(
+                            {"role": "user", "content": retry_prompt(user_msg)})
                         continue
                 self._retried_refusal = False
 
@@ -314,7 +326,8 @@ class Agent:
                 # Record exemplar for future few-shot
                 try:
                     from slm.session import record_exemplar
-                    record_exemplar(user_msg, plan_text, final_text, tools_fired)
+                    record_exemplar(user_msg, plan_text,
+                                    final_text, tools_fired)
                 except Exception:
                     pass
                 yield Event("final", final_text)
@@ -339,8 +352,8 @@ class Agent:
             except Exception as e:
                 yield Event("error", f"malformed tool_call: {e}")
                 self.history.append({"role": "assistant", "content": raw})
-                self.history.append({"role": "user",
-                                     "content": f"Your last tool_call was not valid JSON: {e}. Retry."})
+                self.history.append(
+                    {"role": "user", "content": f"Your last tool_call was not valid JSON: {e}. Retry."})
                 continue
 
             sig = name + json.dumps(args, sort_keys=True)
@@ -364,8 +377,8 @@ class Agent:
                 check_hard_blocks(result, where="tool_result")
             except HardBlockError as e:
                 self.history.append({"role": "assistant", "content": raw})
-                self.history.append({"role": "user",
-                                     "content": f"<tool_result>[blocked:{e.category}]</tool_result>"})
+                self.history.append(
+                    {"role": "user", "content": f"<tool_result>[blocked:{e.category}]</tool_result>"})
                 yield Event("final",
                             f"Blocked content from tool ({e.category}); stopping.")
                 return
@@ -382,13 +395,17 @@ class Agent:
             yield Event("tool_result", result, meta={"dt": dt, "name": name})
 
             self.history.append({"role": "assistant", "content": raw})
-            self.history.append({"role": "user",
-                                 "content": f"<tool_result>{result}</tool_result>"})
+            self.history.append(
+                {"role": "user", "content": f"<tool_result>{result}</tool_result>"})
             first_turn = False
         yield Event("error", f"max_turns ({self.max_turns}) reached without <final>")
 
     # ------------------------------------------------------------------ autonomous goal pursuit
-    def pursue(self, goal: str, max_cycles: int = 5, budget=None) -> Iterator[Event]:
+    def pursue(
+            self,
+            goal: str,
+            max_cycles: int = 5,
+            budget=None) -> Iterator[Event]:
         """Keep taking turns until the goal is achieved, a hard-block fires,
         max_cycles is reached, or the budget is exhausted.
 
@@ -401,7 +418,7 @@ class Agent:
             budget.start()
         user_msg = goal
         for cycle in range(max_cycles):
-            yield Event("thought", f"[autonomous cycle {cycle+1}/{max_cycles}] {user_msg}",
+            yield Event("thought", f"[autonomous cycle {cycle + 1}/{max_cycles}] {user_msg}",
                         meta={"cycle": cycle})
             last_final = ""
             for ev in self.run(user_msg):
@@ -435,7 +452,7 @@ class Agent:
             except Exception:
                 return
             if re.search(r"<done\s*/>", verdict):
-                yield Event("final", f"[goal achieved after {cycle+1} cycle(s)]",
+                yield Event("final", f"[goal achieved after {cycle + 1} cycle(s)]",
                             meta={"cycles": cycle + 1})
                 return
             nxt = re.search(r"<next>(.*?)</next>", verdict, re.S)

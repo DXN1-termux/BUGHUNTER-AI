@@ -11,12 +11,16 @@ Public API:
     export_markdown(finding_id=None) -> str
 """
 from __future__ import annotations
-import json, os, pathlib, time
+import json
+import os
+import pathlib
+import time
 from dataclasses import dataclass, asdict
 from typing import Optional
 import sqlite_utils
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 DB = SLM_HOME / "findings.db"
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
@@ -109,8 +113,10 @@ def export_markdown(finding_id: Optional[int] = None) -> str:
     if finding_id is not None:
         rows = list(_db()["findings"].rows_where("id = ?", [finding_id]))
     else:
-        rows = sorted(_db()["findings"].rows,
-                      key=lambda r: (SEVERITY_ORDER.get(r["severity"], 9), -r["ts"]))
+        rows = sorted(
+            _db()["findings"].rows, key=lambda r: (
+                SEVERITY_ORDER.get(
+                    r["severity"], 9), -r["ts"]))
     if not rows:
         return "*(no findings)*"
 
@@ -128,7 +134,8 @@ def export_markdown(finding_id: Optional[int] = None) -> str:
             out.append(f"- **CVE:** `{r['cve']}`")
         out.append(f"- **Category:** {r['category']}")
         out.append(f"- **Status:** {r['status']}")
-        out.append(f"- **Discovered:** {time.strftime('%Y-%m-%d', time.localtime(r['ts']))}")
+        out.append(
+            f"- **Discovered:** {time.strftime('%Y-%m-%d', time.localtime(r['ts']))}")
         if r["description"]:
             out.append("\n### Description")
             out.append(r["description"])

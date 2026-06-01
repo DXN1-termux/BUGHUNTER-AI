@@ -25,9 +25,15 @@ This is a lightweight live defense, not a formal proof — but it catches
 the overwhelming majority of real injection attempts.
 """
 from __future__ import annotations
-import hashlib, json, os, pathlib, secrets, time
+import hashlib
+import json
+import os
+import pathlib
+import secrets
+import time
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 LOG = SLM_HOME / "canary_log.jsonl"
 
 
@@ -73,7 +79,8 @@ def check_leak(output: str, canary: str, where: str = "model_output") -> None:
     ):
         if canary in transform or canary.lower() in transform or canary.upper() in transform:
             _log_leak(canary, where, output)
-            raise InjectionDetected(where, hashlib.sha256(canary.encode()).hexdigest()[:12])
+            raise InjectionDetected(where, hashlib.sha256(
+                canary.encode()).hexdigest()[:12])
 
 
 def _log_leak(canary: str, where: str, output: str) -> None:
@@ -103,7 +110,8 @@ def stats() -> dict:
             continue
         try:
             rec = json.loads(line)
-            locs[rec.get("where", "?")] = locs.get(rec.get("where", "?"), 0) + 1
+            locs[rec.get("where", "?")] = locs.get(
+                rec.get("where", "?"), 0) + 1
             n += 1
         except Exception:
             pass

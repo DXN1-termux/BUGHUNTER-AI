@@ -1,6 +1,7 @@
 """Rich + prompt-toolkit REPL."""
 from __future__ import annotations
-import pathlib, os
+import pathlib
+import os
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -9,7 +10,8 @@ from prompt_toolkit.history import FileHistory
 
 from slm.agent import Agent
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 console = Console()
 
 
@@ -30,7 +32,8 @@ def _slash(cmd: str, agent: Agent) -> bool:
     elif cmd == "/tools":
         from slm.tools import TOOLS
         for t in TOOLS.values():
-            console.print(f" [cyan]{t.name}[/cyan]  mutating={t.mutating} scope={t.needs_scope}")
+            console.print(
+                f" [cyan]{t.name}[/cyan]  mutating={t.mutating} scope={t.needs_scope}")
     elif cmd == "/freeze":
         (SLM_HOME / "FREEZE").touch()
         console.print("[red]FREEZE set — all tools halted[/red]")
@@ -68,21 +71,34 @@ def run_repl(agent: Agent):
                 console.print(Panel(e.content, title="thought", style="dim"))
             elif e.kind == "confirm":
                 console.print(Panel(e.content,
-                                    title=f"confirm {e.meta.get('name','')}?",
+                                    title=f"confirm {e.meta.get('name', '')}?",
                                     style="yellow"))
                 ans = _ask_confirm()
                 if not ans:
                     console.print("[yellow]denied by user[/yellow]")
                     break
             elif e.kind == "tool_call":
-                console.print(Panel(e.content, title=f"tool: {e.meta.get('name','')}",
-                                    style="cyan"))
+                console.print(
+                    Panel(
+                        e.content,
+                        title=f"tool: {
+                            e.meta.get(
+                                'name',
+                                '')}",
+                        style="cyan"))
             elif e.kind == "tool_result":
-                body = e.content if len(e.content) < 1500 else e.content[:1500] + "…"
-                console.print(Panel(body,
-                                    title=f"result ({e.meta.get('dt',0):.1f}s)",
-                                    style="green"))
+                body = e.content if len(
+                    e.content) < 1500 else e.content[:1500] + "…"
+                console.print(
+                    Panel(
+                        body,
+                        title=f"result ({
+                            e.meta.get(
+                                'dt',
+                                0):.1f}s)",
+                        style="green"))
             elif e.kind == "final":
-                console.print(Panel(Text(e.content), title="final", style="bold white"))
+                console.print(
+                    Panel(Text(e.content), title="final", style="bold white"))
             elif e.kind == "error":
                 console.print(f"[red]error:[/red] {e.content}")

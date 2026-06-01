@@ -15,12 +15,17 @@ then the executor loop walks it in topological order, firing tasks whose
 deps are all satisfied.
 """
 from __future__ import annotations
-import json, os, pathlib, re, time
+import json
+import os
+import pathlib
+import re
+import time
 from dataclasses import dataclass, field
 from typing import Optional
 import sqlite_utils
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 DB = SLM_HOME / "tasks.db"
 
 PLAN_PROMPT = """Decompose the user's goal into a directed acyclic graph (DAG) of concrete subtasks.
@@ -140,7 +145,8 @@ def is_complete(tasks: list[Task]) -> bool:
 
 def summary(tasks: list[Task]) -> str:
     lines = []
-    icons = {"pending": "⏳", "running": "▶️", "done": "✓", "failed": "✗", "skipped": "—"}
+    icons = {"pending": "⏳", "running": "▶️",
+             "done": "✓", "failed": "✗", "skipped": "—"}
     for t in tasks:
         ic = icons.get(t.status, "?")
         deps = ("  [deps: " + ",".join(t.deps) + "]") if t.deps else ""

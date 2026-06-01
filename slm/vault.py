@@ -20,10 +20,16 @@ Privacy guarantees:
 Auto-lock: after 15 minutes of idle, the in-memory key is wiped.
 """
 from __future__ import annotations
-import base64, json, os, pathlib, secrets, time
+import base64
+import json
+import os
+import pathlib
+import secrets
+import time
 from typing import Optional
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 VAULT = SLM_HOME / "vault.enc"
 SALT = SLM_HOME / "vault.salt"
 IDLE_LOCK_SECONDS = 900   # 15 minutes
@@ -139,7 +145,8 @@ def _write(data: dict) -> None:
 
 
 def is_unlocked() -> bool:
-    return _cached_key is not None and (time.time() - _last_use) <= IDLE_LOCK_SECONDS
+    return _cached_key is not None and (
+        time.time() - _last_use) <= IDLE_LOCK_SECONDS
 
 
 def exists() -> bool:

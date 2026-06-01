@@ -7,13 +7,27 @@ Reliability features:
   - context-aware max_tokens: never requests more than fits in n_ctx
 """
 from __future__ import annotations
-import httpx, pathlib, subprocess, time, os, signal, atexit, socket
+import httpx
+import pathlib
+import subprocess
+import time
+import os
+import signal
+import atexit
+import socket
 
 
 class LlamaClient:
-    def __init__(self, model_path: str, host: str = "127.0.0.1", port: int = 8081,
-                 n_ctx: int = 1536, n_threads: int = 6, n_batch: int = 256,
-                 flash_attn: bool = True, auto_start: bool = True):
+    def __init__(
+            self,
+            model_path: str,
+            host: str = "127.0.0.1",
+            port: int = 8081,
+            n_ctx: int = 1536,
+            n_threads: int = 6,
+            n_batch: int = 256,
+            flash_attn: bool = True,
+            auto_start: bool = True):
         self.host, self.port = host, port
         self.base = f"http://{host}:{port}"
         self.model_path = model_path
@@ -23,7 +37,8 @@ class LlamaClient:
         # persistent HTTP/1.1 keep-alive connection to the local server
         self._http = httpx.Client(
             base_url=self.base, timeout=httpx.Timeout(120.0, connect=5.0),
-            limits=httpx.Limits(max_connections=2, max_keepalive_connections=2),
+            limits=httpx.Limits(max_connections=2,
+                                max_keepalive_connections=2),
         )
         if auto_start and not self._ping():
             self._spawn(*self._spawn_args)
@@ -41,8 +56,10 @@ class LlamaClient:
         return self._proc is not None and self._proc.poll() is None and self._ping()
 
     def _spawn(self, n_ctx, n_threads, n_batch, flash_attn):
-        bin_ = pathlib.Path(os.environ.get("SLM_HOME",
-                                           pathlib.Path.home() / ".slm")) / "bin" / "llama-server"
+        bin_ = pathlib.Path(
+            os.environ.get(
+                "SLM_HOME",
+                pathlib.Path.home() / ".slm")) / "bin" / "llama-server"
         if not bin_.exists():
             raise RuntimeError(f"llama-server binary missing: {bin_}")
         if not pathlib.Path(self.model_path).exists():
@@ -61,8 +78,8 @@ class LlamaClient:
             if self._ping():
                 return
             if self._proc.poll() is not None:
-                err = (self._proc.stderr.read().decode("utf-8", "replace")[-1000:]
-                       if self._proc.stderr else "")
+                err = (self._proc.stderr.read().decode("utf-8", "replace")
+                       [-1000:] if self._proc.stderr else "")
                 raise RuntimeError(f"llama-server exited early:\n{err}")
             time.sleep(0.5)
         try:
@@ -123,7 +140,10 @@ class LlamaClient:
                 data = r.json()
                 choices = data.get("choices")
                 if not choices or not isinstance(choices, list):
-                    raise RuntimeError(f"malformed response: no choices in {list(data.keys())}")
+                    raise RuntimeError(
+                        f"malformed response: no choices in {
+                            list(
+                                data.keys())}")
                 msg = choices[0].get("message") or {}
                 txt = msg.get("content") or ""
                 if not txt.strip():
@@ -131,7 +151,8 @@ class LlamaClient:
                         last_err = RuntimeError("empty response from model")
                         time.sleep(0.5 * (2 ** attempt))
                         continue
-                    raise RuntimeError("model returned empty content after 3 attempts")
+                    raise RuntimeError(
+                        "model returned empty content after 3 attempts")
                 break
             except (httpx.TransportError, httpx.ReadTimeout) as e:
                 last_err = e
@@ -147,7 +168,8 @@ class LlamaClient:
             raise RuntimeError(
                 f"llama-server unreachable after 3 attempts: {last_err}")
 
-        # Truncate at first closing tag so the model can't run on past its answer
+        # Truncate at first closing tag so the model can't run on past its
+        # answer
         for stop in ("</final>", "</tool_call>"):
             i = txt.find(stop)
             if i != -1:

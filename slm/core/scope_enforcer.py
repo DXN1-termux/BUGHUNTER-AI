@@ -4,10 +4,15 @@ scope.yaml lives in $SLM_HOME/scope.yaml (user-editable).
 Targets MUST be explicitly listed before any network tool fires.
 """
 from __future__ import annotations
-import ipaddress, os, pathlib, re, yaml
+import ipaddress
+import os
+import pathlib
+import re
+import yaml
 from urllib.parse import urlparse
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 _SCOPE_FILE = SLM_HOME / "scope.yaml"
 
 
@@ -64,7 +69,7 @@ def _ip_matches(ip: ipaddress.IPv4Address | ipaddress.IPv6Address,
             if ip in net:
                 return True
         elif isinstance(ip, ipaddress.IPv6Address) and \
-             isinstance(net, ipaddress.IPv6Network):
+                isinstance(net, ipaddress.IPv6Network):
             if ip in net:
                 return True
     return False
@@ -86,7 +91,7 @@ def check_target(target: str) -> None:
     else:
         # Strip bracketed IPv6 literal
         if host.startswith("[") and "]" in host:
-            host = host[1 : host.index("]")]
+            host = host[1: host.index("]")]
         elif host.count(":") == 1:
             # "example.com:8080" → strip port; leave IPv6 (multiple colons) alone
             host = host.split(":", 1)[0]
@@ -105,5 +110,4 @@ def check_target(target: str) -> None:
     if _domain_matches(host, scope.get("domains", [])):
         return
     raise OutOfScopeError(
-        f"{host} not in scope.yaml — add it to ~/.slm/scope.yaml::domains to authorize"
-    )
+        f"{host} not in scope.yaml — add it to ~/.slm/scope.yaml::domains to authorize")

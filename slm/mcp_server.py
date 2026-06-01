@@ -24,7 +24,8 @@ Every call still goes through the immutable safety layer:
   - FREEZE switch halts everything
 """
 from __future__ import annotations
-import json, sys
+import json
+import sys
 from typing import Any
 
 from slm.tools import TOOLS, dispatch, get_tool_schemas
@@ -44,7 +45,8 @@ def _ok(rid: Any, result: dict) -> None:
 
 
 def _err(rid: Any, code: int, message: str) -> None:
-    _send({"jsonrpc": "2.0", "id": rid, "error": {"code": code, "message": message}})
+    _send({"jsonrpc": "2.0", "id": rid, "error": {
+          "code": code, "message": message}})
 
 
 def _tool_list() -> list[dict]:
@@ -78,7 +80,8 @@ def _handle(req: dict) -> None:
             _err(rid, -32001, "FREEZE active — all tools halted")
             return
         try:
-            check_hard_blocks(json.dumps({"name": name, "args": args}), where="mcp_call")
+            check_hard_blocks(json.dumps(
+                {"name": name, "args": args}), where="mcp_call")
             result = dispatch(name, args)
             check_hard_blocks(result, where="mcp_result")
             _ok(rid, {"content": [{"type": "text", "text": result}]})

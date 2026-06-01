@@ -15,12 +15,18 @@ content — the core/ path is on a hardcoded deny-list here AND at the
 filesystem layer (chmod 444 + executor_guards.resolve_safe_path).
 """
 from __future__ import annotations
-import pathlib, os, shutil, subprocess, json, difflib
+import pathlib
+import os
+import shutil
+import subprocess
+import json
+import difflib
 from slm.core.executor_guards import freeze_active
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 PROPOSALS = SLM_HOME / "proposals"
-REJECTED  = PROPOSALS / "rejected"
+REJECTED = PROPOSALS / "rejected"
 BASELINE_FILE = SLM_HOME / "eval" / "baseline.json"
 
 # HARD deny — never writable by self-improvement.

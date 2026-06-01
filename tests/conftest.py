@@ -3,6 +3,12 @@ import os
 from pathlib import Path
 from slm.core.executor_guards import _QUARANTINE_FILE
 
+
+@pytest.fixture(scope="session")
+def is_termux():
+    return "TERMUX_VERSION" in os.environ
+
+
 @pytest.fixture(autouse=True)
 def bypass_quarantine(monkeypatch):
     """Ensure quarantine file does not exist during tests to prevent locking."""

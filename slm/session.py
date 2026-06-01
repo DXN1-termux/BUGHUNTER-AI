@@ -1,11 +1,15 @@
 """SQLite session + trace log + successful-exemplar store."""
 from __future__ import annotations
-import os, pathlib, json, time
+import os
+import pathlib
+import json
+import time
 import sqlite_utils
 
 from slm.retrieval import rank
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 DB = SLM_HOME / "traces.db"
 
 # Cap trace log growth on mobile; keep the newest N rows.
@@ -81,7 +85,10 @@ def record_exemplar(user_msg: str, plan: str, final: str, ntools: int) -> None:
     _rotate("exemplars", MAX_EXEMPLARS)
 
 
-def retrieve_exemplars(user_msg: str, k: int = 2, min_score: float = 0.15) -> list[dict]:
+def retrieve_exemplars(
+        user_msg: str,
+        k: int = 2,
+        min_score: float = 0.15) -> list[dict]:
     """Return up to k past successful exemplars most similar to user_msg."""
     try:
         rows = list(_db()["exemplars"].rows)

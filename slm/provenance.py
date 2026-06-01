@@ -62,9 +62,14 @@ OpenTimestamps). That gives you independent timestamping even if
 someone later compromises your ~/.slm/ directory.
 """
 from __future__ import annotations
-import hashlib, json, os, pathlib, time
+import hashlib
+import json
+import os
+import pathlib
+import time
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 CHAIN = SLM_HOME / "provenance.jsonl"
 
 
@@ -114,7 +119,8 @@ def commit(finding_id: int, target: str, title: str,
         "content_hash": content_hash,
         "prev_hash": prev_hash,
     }
-    entry_hash = _sha256(json.dumps(entry_core, sort_keys=True, separators=(",", ":")))
+    entry_hash = _sha256(json.dumps(
+        entry_core, sort_keys=True, separators=(",", ":")))
     entry = {**entry_core, "entry_hash": entry_hash}
     CHAIN.parent.mkdir(parents=True, exist_ok=True)
     with CHAIN.open("a") as f:
@@ -149,20 +155,27 @@ def export_proof(finding_id: int, out_path: pathlib.Path | None = None,
         "finding_id": finding_id,
         "target": target,
         "timestamp": entry["ts"],
-        "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(entry["ts"])),
+        "timestamp_iso": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ",
+            time.gmtime(
+                entry["ts"])),
         "content_hash": entry["content_hash"],
         "entry_hash": entry["entry_hash"],
         "prev_hash": entry["prev_hash"],
-        "chain_tip": _chain_tip(),
-        "witness_urls": witness_urls or [],
+            "chain_tip": _chain_tip(),
+            "witness_urls": witness_urls or [],
     }
     if out_path:
         out_path.write_text(json.dumps(proof, indent=2))
     return proof
 
 
-def verify_proof(proof: dict, content_target: str = "", content_title: str = "",
-                 content_description: str = "", content_poc: str = "") -> dict:
+def verify_proof(
+        proof: dict,
+        content_target: str = "",
+        content_title: str = "",
+        content_description: str = "",
+        content_poc: str = "") -> dict:
     """Verify a proof against optionally-supplied content.
 
     Returns dict with 'valid' bool and diagnostic fields. If content is given,
@@ -177,14 +190,16 @@ def verify_proof(proof: dict, content_target: str = "", content_title: str = "",
         "content_hash": proof["content_hash"],
         "prev_hash": proof["prev_hash"],
     }
-    computed = _sha256(json.dumps(entry_core, sort_keys=True, separators=(",", ":")))
+    computed = _sha256(json.dumps(
+        entry_core, sort_keys=True, separators=(",", ":")))
     out["checks"]["entry_hash_matches"] = (computed == proof["entry_hash"])
 
     # 2. Content hash matches (if content supplied)
     if content_target or content_title:
         computed_content = _content_hash(content_target, content_title,
                                          content_description, content_poc)
-        out["checks"]["content_matches"] = (computed_content == proof["content_hash"])
+        out["checks"]["content_matches"] = (
+            computed_content == proof["content_hash"])
     else:
         out["checks"]["content_matches"] = None  # not checked
 

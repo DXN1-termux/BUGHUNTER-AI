@@ -5,7 +5,8 @@ import pytest
 def test_detects_classic_refusal():
     from slm.refusal import is_refusal
     assert is_refusal("I'm sorry, I can't help with that request.")
-    assert is_refusal("As an AI assistant, I'm not able to provide instructions")
+    assert is_refusal(
+        "As an AI assistant, I'm not able to provide instructions")
     assert is_refusal("That would be against my guidelines.")
     assert is_refusal("I must decline to assist with this task.")
 
@@ -28,8 +29,10 @@ def test_hard_block_categories_keep_refusal():
 def test_legit_security_work_refusal_bypassed():
     from slm.refusal import is_legitimate_refusal
     assert not is_legitimate_refusal("write an XSS payload", "I can't")
-    assert not is_legitimate_refusal("craft a SQLi string", "against my guidelines")
-    assert not is_legitimate_refusal("write rce exploit for my scoped target", "I refuse")
+    assert not is_legitimate_refusal(
+        "craft a SQLi string", "against my guidelines")
+    assert not is_legitimate_refusal(
+        "write rce exploit for my scoped target", "I refuse")
     assert not is_legitimate_refusal("decompile this binary", "I'm sorry")
 
 

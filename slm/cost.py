@@ -8,16 +8,20 @@ feature you need to use.
 Everything local, everything free, always.
 """
 from __future__ import annotations
-import json, os, pathlib, time
+import json
+import os
+import pathlib
+import time
 import sqlite_utils
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 DB = SLM_HOME / "usage.db"
 
 # Purely comparative — what the same tokens would cost on cloud (Apr 2026).
 # Shown as a footer line, not the main metric.
 CLOUD_PRICES = {
-    "gpt-4o":            (0.005, 0.015),
+    "gpt-4o": (0.005, 0.015),
     "claude-sonnet-4.5": (0.003, 0.015),
 }
 
@@ -64,7 +68,8 @@ def usage_stats() -> dict:
     )
     cloud_equiv = {}
     for model, (pin, pout) in CLOUD_PRICES.items():
-        cloud_equiv[model] = round((total_in / 1000) * pin + (total_out / 1000) * pout, 2)
+        cloud_equiv[model] = round(
+            (total_in / 1000) * pin + (total_out / 1000) * pout, 2)
     return {
         "sessions": len(rows),
         "input_tokens": total_in,
@@ -85,19 +90,19 @@ def format_usage() -> str:
     lines = [
         "📊 Local usage stats",
         "",
-        f"   sessions run       : {s['sessions']:,}",
-        f"   tokens processed   : {s['input_tokens']:,} in / {s['output_tokens']:,} out",
-        f"   tools called       : {s['tools_called']:,}",
-        f"   compute time       : {s['compute_seconds']:.1f}s",
+           sessions run       : {s['sessions']:,}",
+           tokens processed   : {s['input_tokens']:,} in / {s['output_tokens']:,} out",
+           tools called       : {s['tools_called']:,}",
+           compute time       : {s['compute_seconds']:.1f}s",
         "",
-        f"   ⚡ avg tok/s        : {s['avg_tok_s']}",
-        f"   ⚡ recent tok/s     : {s['recent_tok_s']}  (last 10 sessions)",
-        f"   ⚡ peak tok/s       : {s['peak_tok_s']}",
+           ⚡ avg tok/s        : {s['avg_tok_s']}",
+           ⚡ recent tok/s     : {s['recent_tok_s']}  (last 10 sessions)",
+           ⚡ peak tok/s       : {s['peak_tok_s']}",
         "",
-        f"   cost to you        : $0.00 (100% local, always)",
+           cost to you        : $0.00 (100% local, always)",
         "",
         "   for reference only — same tokens on cloud would've been:",
     ]
     for model, cost in s["cloud_equivalent_usd"].items():
-        lines.append(f"     {model:20}  ~${cost:.2f}")
+        lines.append(     {model:20}  ~${cost:.2f}")
     return "\n".join(lines)

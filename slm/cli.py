@@ -1,6 +1,10 @@
 """Typer CLI entry point."""
 from __future__ import annotations
-import os, pathlib, sys, json, tomllib
+import os
+import pathlib
+import sys
+import json
+import tomllib
 import typer
 from rich.console import Console
 
@@ -10,7 +14,8 @@ from slm.agent import Agent
 app = typer.Typer(add_completion=False, no_args_is_help=False)
 console = Console()
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 
 
 def _version_callback(value: bool):
@@ -85,13 +90,23 @@ def _make_agent(yolo: bool = False) -> Agent:
 
 # ------------------------------------------------------------- default
 @app.callback(invoke_without_command=True)
-def default(ctx: typer.Context,
-            prompt: list[str] = typer.Argument(None),
-            tui: bool = typer.Option(False, "--tui"),
-            yolo: bool = typer.Option(False, "--yolo"),
-            json_out: bool = typer.Option(False, "--json"),
-            version: bool = typer.Option(False, "--version", callback=_version_callback,
-                                         is_eager=True)):
+def default(
+    ctx: typer.Context,
+    prompt: list[str] = typer.Argument(None),
+    tui: bool = typer.Option(
+        False,
+        "--tui"),
+        yolo: bool = typer.Option(
+            False,
+            "--yolo"),
+    json_out: bool = typer.Option(
+        False,
+        "--json"),
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True)):
     if ctx.invoked_subcommand is not None:
         return
     if prompt:
@@ -142,9 +157,11 @@ def install_tools():
     """
     wanted_path = SLM_HOME / "TOOLS_WANTED"
     if not wanted_path.exists():
-        console.print("[yellow]no TOOLS_WANTED file — run `slm setup` first[/yellow]")
+        console.print(
+            "[yellow]no TOOLS_WANTED file — run `slm setup` first[/yellow]")
         raise typer.Exit(1)
-    wanted = [t.strip() for t in wanted_path.read_text().splitlines() if t.strip()]
+    wanted = [t.strip()
+              for t in wanted_path.read_text().splitlines() if t.strip()]
     from slm.tool_installer import install_many
     install_many(wanted)
 
@@ -175,12 +192,14 @@ def pursue(goal: list[str] = typer.Argument(...),
         elif e.kind == "thought":
             console.print(f"[dim][thought][/dim] {e.content}")
         elif e.kind == "confirm":
-            console.print(f"[yellow][confirm][/yellow] {e.content} (non-interactive mode — auto-approving)")
+            console.print(
+                f"[yellow][confirm][/yellow] {e.content} (non-interactive mode — auto-approving)")
         elif e.kind == "tool_call":
             console.print(f"[cyan][tool][/cyan] {e.content}")
         elif e.kind == "tool_result":
             body = e.content[:500] + ("…" if len(e.content) > 500 else "")
-            console.print(f"[green][result {e.meta.get('dt',0):.1f}s][/green] {body}")
+            console.print(
+                f"[green][result {e.meta.get('dt', 0):.1f}s][/green] {body}")
         elif e.kind == "final":
             console.print(f"[bold][final][/bold] {e.content}")
         elif e.kind == "error":
@@ -199,7 +218,8 @@ def findings(
     target: str = typer.Option(None, "--target"),
     severity: str = typer.Option(None, "--severity"),
     status: str = typer.Option(None, "--status"),
-    export: str = typer.Option(None, "--export", help="Path to write markdown report"),
+    export: str = typer.Option(
+        None, "--export", help="Path to write markdown report"),
     show_id: int = typer.Option(None, "--id", help="Export just this finding"),
 ):
     """View/export discovered vulnerabilities across all sessions."""
@@ -218,7 +238,8 @@ def findings(
         return
 
     s = stats()
-    console.print(f"[bold]Findings[/bold]  total={s['total']}  targets={s['targets']}")
+    console.print(
+        f"[bold]Findings[/bold]  total={s['total']}  targets={s['targets']}")
     console.print(f"  by severity: {s['by_severity']}")
     console.print(f"  by status: {s['by_status']}\n")
 
@@ -269,16 +290,23 @@ def canary_log():
 
 
 @app.command()
-def prove(finding_id: int = typer.Argument(...),
-          out: str = typer.Option(None, "--out",
-                                  help="Write proof JSON to this path"),
-          witness: list[str] = typer.Option(None, "--witness",
-                                            help="External witness URL (repeatable)")):
+def prove(
+    finding_id: int = typer.Argument(...),
+    out: str = typer.Option(
+        None,
+        "--out",
+        help="Write proof JSON to this path"),
+        witness: list[str] = typer.Option(
+            None,
+            "--witness",
+        help="External witness URL (repeatable)")):
     """Export a first-finder provenance proof for a given finding."""
     from slm.provenance import export_proof
-    out_path = pathlib.Path(out) if out else pathlib.Path(f"proof_{finding_id}.json")
+    out_path = pathlib.Path(out) if out else pathlib.Path(
+        f"proof_{finding_id}.json")
     try:
-        proof = export_proof(finding_id, out_path=out_path, witness_urls=witness)
+        proof = export_proof(finding_id, out_path=out_path,
+                             witness_urls=witness)
     except ValueError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
@@ -286,15 +314,20 @@ def prove(finding_id: int = typer.Argument(...),
     console.print(f"  finding_id : [cyan]{proof['finding_id']}[/cyan]")
     console.print(f"  target     : [cyan]{proof['target']}[/cyan]")
     console.print(f"  timestamp  : [cyan]{proof['timestamp_iso']}[/cyan]")
-    console.print(f"  content_hash : [dim]{proof['content_hash'][:24]}...[/dim]")
+    console.print(
+        f"  content_hash : [dim]{proof['content_hash'][:24]}...[/dim]")
     console.print(f"  entry_hash   : [dim]{proof['entry_hash'][:24]}...[/dim]")
-    console.print(f"\n  Share [bold]{out_path}[/bold] with the bounty triager.")
+    console.print(
+        f"\n  Share [bold]{out_path}[/bold] with the bounty triager.")
 
 
 @app.command()
-def verify(proof_file: str = typer.Argument(...),
-           content_file: str = typer.Option(None, "--content",
-                                            help="Path to disclosed finding content (JSON with target/title/description/poc)")):
+def verify(
+    proof_file: str = typer.Argument(...),
+    content_file: str = typer.Option(
+        None,
+        "--content",
+        help="Path to disclosed finding content (JSON with target/title/description/poc)")):
     """Verify a provenance proof (and optionally content) matches."""
     from slm.provenance import verify_proof
     proof = json.loads(pathlib.Path(proof_file).read_text())
@@ -335,9 +368,11 @@ def workflow_list():
 
 
 @workflow_app.command("run")
-def workflow_run(name: str = typer.Argument(...),
-                 params: list[str] = typer.Argument(None,
-                     help="key=value pairs, e.g. target=example.com")):
+def workflow_run(
+    name: str = typer.Argument(...),
+    params: list[str] = typer.Argument(
+        None,
+        help="key=value pairs, e.g. target=example.com")):
     """Execute a workflow by name."""
     from slm.workflows import execute
     from slm.tools import dispatch
@@ -352,9 +387,12 @@ def workflow_run(name: str = typer.Argument(...),
         console.print(f"[red]workflow failed: {e}[/red]")
         raise typer.Exit(1)
     for r in results:
-        icon = "✓" if r["status"] == "done" else ("✗" if r["status"] == "failed" else "—")
-        color = {"done": "green", "failed": "red", "skipped": "yellow"}.get(r["status"], "white")
-        console.print(f"[{color}]{icon}[/{color}] {r['id']} · {r.get('title','')}")
+        icon = "✓" if r["status"] == "done" else (
+            "✗" if r["status"] == "failed" else "—")
+        color = {"done": "green", "failed": "red",
+                 "skipped": "yellow"}.get(r["status"], "white")
+        console.print(
+            f"[{color}]{icon}[/{color}] {r['id']} · {r.get('title', '')}")
         body = r["result"][:300] + ("…" if len(r["result"]) > 300 else "")
         console.print(f"  [dim]{body}[/dim]")
 
@@ -416,7 +454,8 @@ def worker(once: bool = typer.Option(False, "--once",
     budget.start()
     while True:
         if budget.exceeded():
-            console.print(f"[yellow]budget exhausted ({budget.reason()})[/yellow]")
+            console.print(
+                f"[yellow]budget exhausted ({budget.reason()})[/yellow]")
             break
         task = take_next()
         if not task:
@@ -444,7 +483,8 @@ def worker(once: bool = typer.Option(False, "--once",
             break
 
 
-vault_app = typer.Typer(help="Encrypted credential vault for Discord tokens, API keys, etc.")
+vault_app = typer.Typer(
+    help="Encrypted credential vault for Discord tokens, API keys, etc.")
 app.add_typer(vault_app, name="vault")
 
 
@@ -478,9 +518,8 @@ def vault_lock():
 
 
 @vault_app.command("set")
-def vault_set(name: str = typer.Argument(...),
-              value: str = typer.Argument(None,
-                  help="If omitted, reads stdin securely (recommended)")):
+def vault_set(name: str = typer.Argument(...), value: str = typer.Argument(
+        None, help="If omitted, reads stdin securely (recommended)")):
     """Store a secret. Leave value blank and paste it when prompted for safety."""
     from slm.vault import set_secret, VaultLocked
     if value is None:
@@ -532,7 +571,8 @@ def vault_delete(name: str = typer.Argument(...)):
         console.print(f"[yellow]no such secret: {name}[/yellow]")
 
 
-discord_app = typer.Typer(help="Discord bot runner (scope-gated 24/7 moderation).")
+discord_app = typer.Typer(
+    help="Discord bot runner (scope-gated 24/7 moderation).")
 app.add_typer(discord_app, name="discord")
 
 
@@ -555,13 +595,17 @@ def ask_cloud(provider: str = typer.Argument(..., help="anthropic | openai"),
               max_tokens: int = typer.Option(1024, "--max-tokens")):
     """Forward a single prompt to an external LLM (using vault credentials)."""
     from slm.api_passthrough import call
-    result = call(provider, " ".join(prompt), model=model, max_tokens=max_tokens)
+    result = call(provider, " ".join(prompt),
+                  model=model, max_tokens=max_tokens)
     console.print(result)
 
 
 @app.command()
-def panic(hard: bool = typer.Option(False, "--hard",
-                                    help="Overwrite files with random bytes before delete")):
+def panic(
+    hard: bool = typer.Option(
+        False,
+        "--hard",
+        help="Overwrite files with random bytes before delete")):
     """🚨 Wipe ALL ~/.slm/ state (vault, findings, traces, canary log, everything).
 
     No confirmation — hit this only when you mean it. Pair with --hard for
@@ -572,7 +616,8 @@ def panic(hard: bool = typer.Option(False, "--hard",
     console.print(f"[red]shredded {result['deleted']} file(s)[/red] "
                   f"({result['mode']} mode)")
     if result.get("overwritten"):
-        console.print(f"  overwrote {result['overwritten']} file(s) with random bytes")
+        console.print(
+            f"  overwrote {result['overwritten']} file(s) with random bytes")
 
 
 @app.command()
@@ -582,7 +627,8 @@ def uninstall(purge: bool = typer.Option(False, "--purge")):
         raise typer.Exit()
     import shutil
     shutil.rmtree(SLM_HOME, ignore_errors=True)
-    prefix_bin = pathlib.Path(os.environ.get("PREFIX", "/usr/local")) / "bin" / "slm"
+    prefix_bin = pathlib.Path(os.environ.get(
+        "PREFIX", "/usr/local")) / "bin" / "slm"
     prefix_bin.unlink(missing_ok=True)
     console.print("[green]uninstalled[/green]")
 
@@ -591,8 +637,13 @@ def uninstall(purge: bool = typer.Option(False, "--purge")):
 def install_snowflake():
     """Build the Snowflake connector (rust toolchain required)."""
     os.environ["CARGO_NET_GIT_FETCH_WITH_CLI"] = "true"
-    os.execv(sys.executable, [sys.executable, "-m", "pip", "install",
-                              "--no-cache-dir", "snowflake-connector-python<4"])
+    os.execv(sys.executable,
+             [sys.executable,
+              "-m",
+              "pip",
+              "install",
+              "--no-cache-dir",
+              "snowflake-connector-python<4"])
 
 
 if __name__ == "__main__":

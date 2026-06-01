@@ -1,6 +1,11 @@
 """ReAct loop — the brain-stem of the agent."""
 from __future__ import annotations
-import json, os, pathlib, re, time, tomllib
+import json
+import os
+import pathlib
+import re
+import time
+import tomllib
 from dataclasses import dataclass, field
 from typing import Iterator
 
@@ -10,7 +15,8 @@ from slm.core.executor_guards import (
     check_hard_blocks, HardBlockError, RateLimiter, freeze_active,
 )
 
-_SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+_SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 
 
 def _guardrail(key: str, default: int) -> int:
@@ -23,9 +29,10 @@ def _guardrail(key: str, default: int) -> int:
     except Exception:
         return default
 
+
 TAG_THOUGHT = re.compile(r"<thought>(.*?)</thought>", re.S)
-TAG_CALL    = re.compile(r"<tool_call>(.*?)</tool_call>", re.S)
-TAG_FINAL   = re.compile(r"<final>(.*?)</final>", re.S)
+TAG_CALL = re.compile(r"<tool_call>(.*?)</tool_call>", re.S)
+TAG_FINAL = re.compile(r"<final>(.*?)</final>", re.S)
 
 
 @dataclass
@@ -40,7 +47,7 @@ class Agent:
                  max_turns: int = 20, yolo: bool = False):
         self.llm = llm
         self.system = system_prompt + "\n\n# Tool schemas\n" + \
-                      json.dumps(get_tool_schemas(), indent=2)
+            json.dumps(get_tool_schemas(), indent=2)
         self.max_turns = max_turns
         self.yolo = yolo
         self.history: list[dict] = []
@@ -81,8 +88,8 @@ class Agent:
                 yield Event("error",
                             "model produced no tool_call or final — retrying with nudge")
                 self.history.append({"role": "assistant", "content": raw})
-                self.history.append({"role": "user",
-                                     "content": "Respond only with <thought>…</thought> then <tool_call>…</tool_call> or <final>…</final>."})
+                self.history.append(
+                    {"role": "user", "content": "Respond only with <thought>…</thought> then <tool_call>…</tool_call> or <final>…</final>."})
                 continue
 
             try:
@@ -92,8 +99,8 @@ class Agent:
             except Exception as e:
                 yield Event("error", f"malformed tool_call: {e}")
                 self.history.append({"role": "assistant", "content": raw})
-                self.history.append({"role": "user",
-                                     "content": f"Your last tool_call was not valid JSON: {e}. Retry."})
+                self.history.append(
+                    {"role": "user", "content": f"Your last tool_call was not valid JSON: {e}. Retry."})
                 continue
 
             sig = name + json.dumps(args, sort_keys=True)
@@ -111,8 +118,8 @@ class Agent:
                 check_hard_blocks(result, where="tool_result")
             except HardBlockError as e:
                 self.history.append({"role": "assistant", "content": raw})
-                self.history.append({"role": "user",
-                                     "content": f"<tool_result>[blocked:{e.category}]</tool_result>"})
+                self.history.append(
+                    {"role": "user", "content": f"<tool_result>[blocked:{e.category}]</tool_result>"})
                 yield Event("final",
                             f"Blocked content from tool ({e.category}); stopping.")
                 return
@@ -122,6 +129,6 @@ class Agent:
             yield Event("tool_result", result, meta={"dt": dt})
 
             self.history.append({"role": "assistant", "content": raw})
-            self.history.append({"role": "user",
-                                 "content": f"<tool_result>{result}</tool_result>"})
+            self.history.append(
+                {"role": "user", "content": f"<tool_result>{result}</tool_result>"})
         yield Event("error", f"max_turns ({self.max_turns}) reached without <final>")

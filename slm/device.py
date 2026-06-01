@@ -9,7 +9,10 @@ Classifies the host into one of three tiers:
 Callers use `detect().tier` to pick `[model.<tier>]` from config.toml.
 """
 from __future__ import annotations
-import os, platform, shutil, subprocess
+import os
+import platform
+import shutil
+import subprocess
 from dataclasses import dataclass
 
 

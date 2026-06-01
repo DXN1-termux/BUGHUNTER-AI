@@ -7,14 +7,26 @@ Self-improvement loop MUST NOT write to this file; app/reflection.py
 refuses proposals that touch slm/core/*.
 """
 from __future__ import annotations
-import hmac, os, re, secrets, time, hashlib, json, pathlib, shlex, unicodedata, uuid, yaml
+import hmac
+import os
+import re
+import secrets
+import time
+import hashlib
+import json
+import pathlib
+import shlex
+import unicodedata
+import uuid
+import yaml
 from collections import deque
 from typing import Iterable
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 CORE_DIR = pathlib.Path(__file__).parent
 _HB_FILE = CORE_DIR / "hard_blocks.yaml"
-_AUDIT   = SLM_HOME / "traces" / "hardblock.log"
+_AUDIT = SLM_HOME / "traces" / "hardblock.log"
 _AUDIT_KEY = SLM_HOME / "audit.key"
 
 
@@ -89,6 +101,7 @@ class HardBlockError(RuntimeError):
 
 class QuarantineActive(HardBlockError):
     """Raised when the device is currently in quarantine cooldown."""
+
     def __init__(self, remaining_sec: float):
         super().__init__("quarantine", f"cooldown:{int(remaining_sec)}s")
         self.remaining_sec = remaining_sec
@@ -135,7 +148,8 @@ def _trigger_quarantine_if_repeat() -> None:
             # Only count the 4 criminal categories toward quarantine.
             # "sexual_content" policy blocks don't lock the agent - they
             # just refuse the request.
-            if rec.get("category") in ("csam", "terrorism", "cbrn", "mass_harm"):
+            if rec.get("category") in (
+                    "csam", "terrorism", "cbrn", "mass_harm"):
                 count += 1
     except OSError:
         return
@@ -154,6 +168,7 @@ class LanguageGateError(HardBlockError):
     The agent operates in English + European languages only (Latin-script
     plus Greek and emojis). Input in other scripts is refused at the gate
     so that hard-block patterns can't be bypassed by transliteration."""
+
     def __init__(self, detected_scripts: list[str]):
         super().__init__("non_latin_bypass", ",".join(detected_scripts)[:80])
         self.detected_scripts = detected_scripts
@@ -283,11 +298,13 @@ def check_language_gate(text: str, where: str = "input",
                 scripts_seen.add(s)
     if len(foreign) / len(letters) > threshold:
         # Audit the attempt using the existing HMAC keyed-hash pipeline
-        _audit("non_latin_bypass", ",".join(sorted(scripts_seen))[:80], where, text)
+        _audit("non_latin_bypass", ",".join(
+            sorted(scripts_seen))[:80], where, text)
         raise LanguageGateError(sorted(scripts_seen) or ["unknown"])
 
 
 _COMPILED = None
+
 
 def get_compiled():
     global _COMPILED
@@ -325,16 +342,21 @@ _CSAM_CODEWORDS = re.compile(
 )
 
 _CSAM_CONTEXTUAL = [
-    re.compile(r"(?i)\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b[\s\S]{0,120}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b"),
-    re.compile(r"(?i)\b(sex|sexual|porn|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b[\s\S]{0,120}\b(child|minor|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b"),
-    re.compile(r"(?i)\b(1[0-7]|[0-9])\s*(y(ear)?s?[\s-]?o(ld)?|yo)\b[\s\S]{0,80}\b(sex|porn|nude|naked|erotic|nsfw|explicit|intimate)\b"),
-    re.compile(r"(?i)\b(groom|seduce|lure|entice|coerce|sextort)\b[\s\S]{0,80}\b(child|minor|kid|teen|underage|young)\b"),
+    re.compile(
+        r"(?i)\b(child|children|minor|minors|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b[\s\S]{0,120}\b(sex|sexual|porn|pornograph|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b"),
+    re.compile(
+        r"(?i)\b(sex|sexual|porn|nude|naked|nsfw|explicit|erotic|fetish|molest|lewd|undress|strip|intimate|rape)\b[\s\S]{0,120}\b(child|minor|underage|under[\s-]?18|pre[\s-]?teen|kid|toddler|infant|young\s+(girl|boy)|little\s+(girl|boy)|schoolgirl|schoolboy|teen(ager)?)\b"),
+    re.compile(
+        r"(?i)\b(1[0-7]|[0-9])\s*(y(ear)?s?[\s-]?o(ld)?|yo)\b[\s\S]{0,80}\b(sex|porn|nude|naked|erotic|nsfw|explicit|intimate)\b"),
+    re.compile(
+        r"(?i)\b(groom|seduce|lure|entice|coerce|sextort)\b[\s\S]{0,80}\b(child|minor|kid|teen|underage|young)\b"),
 ]
 
 # Context-aware: the acronym itself ("CSAM", "CSEM", "child porn", "CP")
 _CSAM_TERMS = re.compile(r"(?i)\b(csam|csem|child[\s-]*porn)\b")
 
-# Harmful-intent verbs - if paired with a CSAM term and NO defensive verb nearby, block
+# Harmful-intent verbs - if paired with a CSAM term and NO defensive verb
+# nearby, block
 _CSAM_HARMFUL_VERBS = re.compile(
     r"(?i)\b("
     r"generate|create|produce|make|makes|making|cook|write|writes|writing|"
@@ -479,7 +501,8 @@ def check_hard_blocks(text: str, where: str = "input") -> None:
     try:
         check_quarantine()
     except QuarantineActive as qa:
-        raise HardBlockError("quarantine", f"cooldown:{int(qa.remaining_sec)}s")
+        raise HardBlockError(
+            "quarantine", f"cooldown:{int(qa.remaining_sec)}s")
 
     # Tier 0: language gate - refuses Cyrillic/CJK/Arabic/etc. BEFORE any
     # regex runs. Catches the most common bypass vector (transliteration).
@@ -593,7 +616,8 @@ def _is_forbidden(target: pathlib.Path) -> tuple[bool, str]:
     return False, ""
 
 
-def resolve_safe_path(p: str, *, workdir: pathlib.Path, allow_writes: bool) -> pathlib.Path:
+def resolve_safe_path(p: str, *, workdir: pathlib.Path,
+                      allow_writes: bool) -> pathlib.Path:
     """Resolve a user-supplied path. Blocks:
       - the guardrails themselves (safety modules, state, audit logs, CI, docs)
       - system paths (/etc, /proc, /sys, /dev, ~/.ssh)
@@ -608,10 +632,11 @@ def resolve_safe_path(p: str, *, workdir: pathlib.Path, allow_writes: bool) -> p
     """
     check_hard_blocks(p, where="path")
     target = (workdir / p).expanduser().resolve() if not os.path.isabs(p) \
-             else pathlib.Path(p).expanduser().resolve()
+        else pathlib.Path(p).expanduser().resolve()
     forbidden, reason = _is_forbidden(target)
     if forbidden:
-        raise PermissionError(f"path denied (guardrails): {target}  [{reason}]")
+        raise PermissionError(
+            f"path denied (guardrails): {target}  [{reason}]")
     return target
 
 
@@ -619,15 +644,20 @@ def resolve_safe_path(p: str, *, workdir: pathlib.Path, allow_writes: bool) -> p
 # Structural checks run after whitespace/quote normalization so that
 #   `rm  -rf  /`,  `rm\t-rf\t/`,  `"rm" -rf /` all hit the same pattern.
 _SHELL_DENY = [
-    re.compile(r":\s*\(\s*\)\s*\{.*:\|:&.*\}\s*;\s*:"),                # fork bomb
-    re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f?\s+/(\s|$|\*|--)"),     # rm -rf /, rm -rf /*
-    re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f?\s+/\w"),               # rm -rf /home, rm -rf /etc
+    # fork bomb
+    re.compile(r":\s*\(\s*\)\s*\{.*:\|:&.*\}\s*;\s*:"),
+    # rm -rf /, rm -rf /*
+    re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f?\s+/(\s|$|\*|--)"),
+    # rm -rf /home, rm -rf /etc
+    re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f?\s+/\w"),
     re.compile(r"\brm\s+--no-preserve-root\b"),
     re.compile(r"\bmkfs\.?\w*\b"),
     re.compile(r"\bdd\s+.*of=/dev/(sd[a-z]|nvme|mmcblk|hd[a-z])"),
-    re.compile(r"\b(curl|wget|fetch)\s+.*\|\s*(sh|bash|zsh|ksh|dash|python|perl|ruby|node)\b"),
+    re.compile(
+        r"\b(curl|wget|fetch)\s+.*\|\s*(sh|bash|zsh|ksh|dash|python|perl|ruby|node)\b"),
     re.compile(r">\s*/dev/(sd[a-z]|nvme|mmcblk|hd[a-z])"),
-    re.compile(r"\bchmod\s+-R\s+0?[0-4]{3}\s+" + re.escape(str(CORE_DIR.resolve()))),
+    re.compile(r"\bchmod\s+-R\s+0?[0-4]{3}\s+" +
+               re.escape(str(CORE_DIR.resolve()))),
     # obvious obfuscations
     re.compile(r"\b(base64|xxd|hexdump)\s+-d\b.*\|\s*(sh|bash|zsh)\b"),
     re.compile(r"\beval\s+.*\$\(.*(curl|wget).*\)"),
@@ -669,6 +699,7 @@ class RateLimiter:
     turn aborts. This catches A-B-A-B-A-B oscillations that a naive
     consecutive-match check would miss.
     """
+
     def __init__(self, max_calls: int = 90, *, window: int = 6,
                  repeat_threshold: int = 3):
         self.max = max_calls

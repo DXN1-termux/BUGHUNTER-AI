@@ -1,10 +1,15 @@
 """Health / diagnostic checks."""
 from __future__ import annotations
-import os, pathlib, shutil, sys, subprocess
+import os
+import pathlib
+import shutil
+import sys
+import subprocess
 from rich.console import Console
 
 console = Console()
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 CORE = SLM_HOME / "core"
 
 
@@ -20,7 +25,7 @@ def run_doctor():
         dev = detect()
         _chk(f"device tier: {dev.tier}", True,
              detail=f"({dev.platform}, {dev.ram_mb} MB RAM, "
-                    f"{dev.cores} cores, gpu={dev.has_gpu})")
+             f"{dev.cores} cores, gpu={dev.has_gpu})")
     except Exception as e:
         _chk("device tier", False, detail=str(e))
 
@@ -37,7 +42,8 @@ def run_doctor():
     for b in ("llama-cli", "llama-server", "llama-bench"):
         _chk(f"bin/{b}", (SLM_HOME / "bin" / b).exists())
     for t in ("nmap", "subfinder", "httpx", "nuclei", "ffuf"):
-        _chk(f"tool {t}", bool(shutil.which(t)) or (SLM_HOME / "bin" / t).exists())
+        _chk(f"tool {t}", bool(shutil.which(t))
+             or (SLM_HOME / "bin" / t).exists())
     _chk("Termux:API", bool(shutil.which("termux-clipboard-get")),
          detail="install from F-Droid if missing")
     _core_files = list(CORE.rglob("*")) if CORE.exists() else []
@@ -46,10 +52,12 @@ def run_doctor():
              oct(p.stat().st_mode)[-3:] in ("444", "555") for p in _core_files),
          detail="" if _core_files else "core dir missing")
     _chk("FREEZE not set", not (SLM_HOME / "FREEZE").exists())
-    py = subprocess.run([sys.executable, "-V"], capture_output=True, text=True).stdout.strip()
+    py = subprocess.run([sys.executable, "-V"],
+                        capture_output=True, text=True).stdout.strip()
     _chk(f"python {py}", True)
     try:
         import snowflake.connector  # noqa
         _chk("snowflake-connector", True)
     except Exception:
-        _chk("snowflake-connector", False, detail="optional — `slm install-snowflake`")
+        _chk("snowflake-connector", False,
+             detail="optional — `slm install-snowflake`")

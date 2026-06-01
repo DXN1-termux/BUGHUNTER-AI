@@ -12,22 +12,31 @@ any findings into findings.db / traces.db, then moves to the next. Crashes
 are survivable — an interrupted task resumes on the next worker start.
 """
 from __future__ import annotations
-import os, pathlib, time
+import os
+import pathlib
+import time
 from dataclasses import dataclass
 import sqlite_utils
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 DB = SLM_HOME / "queue.db"
 
 
 def _db():
     d = sqlite_utils.Database(DB)
     if "tasks" not in d.table_names():
-        d["tasks"].create({
-            "id": int, "ts_added": float, "ts_started": float, "ts_done": float,
-            "goal": str, "status": str, "cycles": int,
-            "result": str, "error": str,
-        }, pk="id")
+        d["tasks"].create({"id": int,
+                           "ts_added": float,
+                           "ts_started": float,
+                           "ts_done": float,
+                           "goal": str,
+                           "status": str,
+                           "cycles": int,
+                           "result": str,
+                           "error": str,
+                           },
+                          pk="id")
         d["tasks"].create_index(["status"], if_not_exists=True)
     return d
 
@@ -49,9 +58,11 @@ def list_all(status: str | None = None, limit: int = 50) -> list[dict]:
     q = "SELECT * FROM tasks"
     if status:
         q += " WHERE status = ?"
-        rows = list(_db().query(q + f" ORDER BY ts_added DESC LIMIT {int(limit)}", [status]))
+        rows = list(_db().query(
+            q + f" ORDER BY ts_added DESC LIMIT {int(limit)}", [status]))
     else:
-        rows = list(_db().query(q + f" ORDER BY ts_added DESC LIMIT {int(limit)}"))
+        rows = list(_db().query(
+            q + f" ORDER BY ts_added DESC LIMIT {int(limit)}"))
     return rows
 
 
@@ -62,7 +73,8 @@ def take_next() -> dict | None:
     if not rows:
         return None
     task = rows[0]
-    d["tasks"].update(task["id"], {"status": "running", "ts_started": time.time()})
+    d["tasks"].update(
+        task["id"], {"status": "running", "ts_started": time.time()})
     return task
 
 

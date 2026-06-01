@@ -1,6 +1,9 @@
 """Best-effort installer for recon tools across platforms."""
 from __future__ import annotations
-import platform, shutil, subprocess, os
+import platform
+import shutil
+import subprocess
+import os
 from rich.console import Console
 
 console = Console()
@@ -42,47 +45,47 @@ def _install_one(tool: str, pm: str) -> bool:
         return True
     cmd_map = {
         "pkg": {
-            "nmap":      ["pkg", "install", "-y", "nmap"],
+            "nmap": ["pkg", "install", "-y", "nmap"],
             "subfinder": ["go", "install", "-v",
                           "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"],
-            "httpx":     ["go", "install", "-v",
-                          "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
-            "nuclei":    ["go", "install", "-v",
-                          "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"],
-            "ffuf":      ["go", "install", "-v",
-                          "github.com/ffuf/ffuf/v2@latest"],
-            "katana":    ["go", "install",
-                          "github.com/projectdiscovery/katana/cmd/katana@latest"],
+            "httpx": ["go", "install", "-v",
+                      "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
+            "nuclei": ["go", "install", "-v",
+                       "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"],
+            "ffuf": ["go", "install", "-v",
+                     "github.com/ffuf/ffuf/v2@latest"],
+            "katana": ["go", "install",
+                       "github.com/projectdiscovery/katana/cmd/katana@latest"],
         },
         "apt": {
-            "nmap":      ["sudo", "apt-get", "install", "-y", "nmap"],
+            "nmap": ["sudo", "apt-get", "install", "-y", "nmap"],
             "subfinder": ["go", "install", "-v",
                           "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"],
-            "httpx":     ["go", "install", "-v",
-                          "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
-            "nuclei":    ["go", "install", "-v",
-                          "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"],
-            "ffuf":      ["sudo", "apt-get", "install", "-y", "ffuf"],
-            "katana":    ["go", "install",
-                          "github.com/projectdiscovery/katana/cmd/katana@latest"],
+            "httpx": ["go", "install", "-v",
+                      "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
+            "nuclei": ["go", "install", "-v",
+                       "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"],
+            "ffuf": ["sudo", "apt-get", "install", "-y", "ffuf"],
+            "katana": ["go", "install",
+                       "github.com/projectdiscovery/katana/cmd/katana@latest"],
         },
         "brew": {
-            "nmap":      ["brew", "install", "nmap"],
+            "nmap": ["brew", "install", "nmap"],
             "subfinder": ["brew", "install", "subfinder"],
-            "httpx":     ["brew", "install", "httpx"],
-            "nuclei":    ["brew", "install", "nuclei"],
-            "ffuf":      ["brew", "install", "ffuf"],
-            "katana":    ["brew", "install", "katana"],
+            "httpx": ["brew", "install", "httpx"],
+            "nuclei": ["brew", "install", "nuclei"],
+            "ffuf": ["brew", "install", "ffuf"],
+            "katana": ["brew", "install", "katana"],
         },
         "pacman": {
-            "nmap":      ["sudo", "pacman", "-S", "--noconfirm", "nmap"],
-            "ffuf":      ["sudo", "pacman", "-S", "--noconfirm", "ffuf"],
+            "nmap": ["sudo", "pacman", "-S", "--noconfirm", "nmap"],
+            "ffuf": ["sudo", "pacman", "-S", "--noconfirm", "ffuf"],
         },
         "dnf": {
-            "nmap":      ["sudo", "dnf", "install", "-y", "nmap"],
+            "nmap": ["sudo", "dnf", "install", "-y", "nmap"],
         },
         "winget": {
-            "nmap":      ["winget", "install", "--id", "Insecure.Nmap"],
+            "nmap": ["winget", "install", "--id", "Insecure.Nmap"],
         },
     }
     cmd = cmd_map.get(pm, {}).get(tool)
@@ -99,7 +102,8 @@ def install_many(tools: list[str]) -> None:
     pm = _detect_pm()
     console.print(f"[cyan]package manager:[/cyan] {pm}")
     if pm == "unknown":
-        console.print("[red]no supported package manager found; install tools manually[/red]")
+        console.print(
+            "[red]no supported package manager found; install tools manually[/red]")
         return
     failures = []
     for t in tools:

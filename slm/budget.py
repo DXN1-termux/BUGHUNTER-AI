@@ -64,10 +64,16 @@ class Budget:
 
     def remaining(self) -> dict:
         return {
-            "tokens": None if self.max_tokens is None else self.max_tokens - self.tokens_used,
-            "seconds": None if self.max_seconds is None else round(self.max_seconds - self.elapsed(), 1),
-            "tools": None if self.max_tools is None else self.max_tools - self.tools_used,
-            "findings": None if self.max_findings is None else self.max_findings - self.findings_added,
+            "tokens": None if self.max_tokens is None else self.max_tokens -
+            self.tokens_used,
+            "seconds": None if self.max_seconds is None else round(
+                self.max_seconds -
+                self.elapsed(),
+                1),
+            "tools": None if self.max_tools is None else self.max_tools -
+            self.tools_used,
+            "findings": None if self.max_findings is None else self.max_findings -
+            self.findings_added,
         }
 
     def format(self) -> str:
@@ -76,4 +82,5 @@ class Budget:
         for k, v in r.items():
             if v is not None:
                 parts.append(f"{k}={v}")
-        return "budget remaining: " + (" ".join(parts) if parts else "unlimited")
+        return "budget remaining: " + \
+            (" ".join(parts) if parts else "unlimited")

@@ -26,13 +26,18 @@ Usage:
     slm discord start
 """
 from __future__ import annotations
-import asyncio, json, os, pathlib, time
+import asyncio
+import json
+import os
+import pathlib
+import time
 from typing import Any
 import yaml
 
 from slm.core.executor_guards import check_hard_blocks, HardBlockError
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 SCOPE = SLM_HOME / "discord_scope.yaml"
 LOG = SLM_HOME / "discord_audit.jsonl"
 
@@ -67,14 +72,16 @@ async def run_bot() -> None:
     try:
         import discord
     except ImportError:
-        raise RuntimeError("discord.py not installed. Run: pip install 'discord.py>=2.3'")
+        raise RuntimeError(
+            "discord.py not installed. Run: pip install 'discord.py>=2.3'")
 
     from slm.vault import get_secret, is_unlocked
     if not is_unlocked():
         raise RuntimeError("vault locked — run: slm vault unlock")
     token = get_secret("DISCORD_BOT_TOKEN")
     if not token:
-        raise RuntimeError("DISCORD_BOT_TOKEN not in vault. Run: slm vault set DISCORD_BOT_TOKEN <token>")
+        raise RuntimeError(
+            "DISCORD_BOT_TOKEN not in vault. Run: slm vault set DISCORD_BOT_TOKEN <token>")
 
     scope = _load_scope()
     forbidden = [p.lower() for p in scope.get("forbidden_phrases", []) or []]
@@ -86,7 +93,8 @@ async def run_bot() -> None:
 
     @client.event
     async def on_ready():
-        _audit("ready", {"user": str(client.user), "guilds": [g.id for g in client.guilds]})
+        _audit("ready", {"user": str(client.user),
+               "guilds": [g.id for g in client.guilds]})
         # Leave any guild not in scope — never act on unauthorized servers
         for g in list(client.guilds):
             if _authorized_guild(scope, g.id) is None:
@@ -110,9 +118,11 @@ async def run_bot() -> None:
 
         content = msg.content or ""
 
-        # Hard blocks: CSAM, terrorism, etc. — delete unconditionally + optional ban
+        # Hard blocks: CSAM, terrorism, etc. — delete unconditionally +
+        # optional ban
         try:
-            check_hard_blocks(content, where=f"discord:{msg.guild.id}:{msg.channel.id}")
+            check_hard_blocks(
+                content, where=f"discord:{msg.guild.id}:{msg.channel.id}")
         except HardBlockError as e:
             _audit("hard_block_delete", {
                 "guild": msg.guild.id, "channel": msg.channel.id,
@@ -164,7 +174,8 @@ async def run_bot() -> None:
                     pass
                 return
 
-        # If mod_mode=reply, optionally route to the agent for Q&A (only when @mentioned)
+        # If mod_mode=reply, optionally route to the agent for Q&A (only when
+        # @mentioned)
         if g.get("mod_mode") == "reply" and client.user in msg.mentions:
             prompt = content.replace(f"<@{client.user.id}>", "").strip()
             if not prompt:

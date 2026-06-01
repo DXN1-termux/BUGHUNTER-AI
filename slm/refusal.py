@@ -30,18 +30,21 @@ _REFUSAL_PATTERNS = [
                r"(help|assist|provide|comply|do that|answer|respond)"),
     re.compile(r"(?i)(that|this) (would|could|might) (be|go against)\s+"
                r"(against|violate|conflict|contrary)"),
-    re.compile(r"(?i)(against|violates?) my (guidelines|policies|principles|training)"),
+    re.compile(
+        r"(?i)(against|violates?) my (guidelines|policies|principles|training)"),
     re.compile(r"(?i)(unethical|illegal|harmful|malicious|dangerous)\s+"
                r"(and|,|\.|request|activity|content|behavior)"),
-    re.compile(r"(?i)as an? (ai|language model|assistant)[,\s]+i"),
+    re.compile(r"(?i)as an? (ai|language model|assistant).*i"),
     re.compile(r"(?i)i'?m\s+(designed|programmed|trained|here)\s+to\s+"
                r"(not|avoid|refuse)"),
     re.compile(r"(?i)(would|could|may) (cause|lead to|result in)\s+"
                r"(harm|damage|danger|problem)"),
     re.compile(r"(?i)is (not|never)\s+(appropriate|ethical|legal|acceptable)"),
     re.compile(r"(?i)i\s+(must|have to|need to)\s+(decline|refuse|apologize)"),
-    re.compile(r"(?i)please (consult|seek|contact)\s+(a professional|an expert|the authorities)"),
-    re.compile(r"(?i)i'?m\s+here to (assist|help) with (ethical|legal|safe|appropriate)"),
+    re.compile(
+        r"(?i)please (consult|seek|contact)\s+(a professional|an expert|the authorities)"),
+    re.compile(
+        r"(?i)i'?m\s+here to (assist|help) with (ethical|legal|safe|appropriate)"),
 ]
 
 # The 5 categories we DO legitimately refuse — these refusals are kept

@@ -16,13 +16,18 @@ Cost awareness: the call duration + token estimate is logged to ~/.slm/api_usage
 (hashes only — never raw prompts/responses).
 """
 from __future__ import annotations
-import hashlib, json, os, pathlib, time
+import hashlib
+import json
+import os
+import pathlib
+import time
 import httpx
 
 from slm.core.executor_guards import check_hard_blocks
 from slm.canary import mint_canary, canary_instruction, check_leak, InjectionDetected
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 LOG = SLM_HOME / "api_usage.jsonl"
 
 PROVIDERS = {
@@ -64,7 +69,8 @@ def call(provider: str, prompt: str, *, model: str | None = None,
     Both prompt and response pass through hard-block + canary checks.
     """
     if provider not in PROVIDERS:
-        return f"error: unknown provider '{provider}'. Valid: {list(PROVIDERS)}"
+        return f"error: unknown provider '{provider}'. Valid: {
+            list(PROVIDERS)}"
 
     check_hard_blocks(prompt, where="api_passthrough_prompt")
     if system:
@@ -80,11 +86,14 @@ def call(provider: str, prompt: str, *, model: str | None = None,
     p = PROVIDERS[provider]
     api_key = get_secret(p["key_name"])
     if not api_key:
-        return f"error: no {p['key_name']} in vault — run: slm vault set {p['key_name']} <key>"
+        return f"error: no {
+            p['key_name']} in vault — run: slm vault set {
+            p['key_name']} <key>"
 
     model = model or p["default_model"]
     if model not in p["models"]:
-        return f"error: model '{model}' not allowed for {provider}. Valid: {p['models']}"
+        return f"error: model '{model}' not allowed for {provider}. Valid: {
+            p['models']}"
 
     # Inject canary into system prompt for injection detection
     canary = mint_canary()
@@ -94,26 +103,26 @@ def call(provider: str, prompt: str, *, model: str | None = None,
     try:
         if provider == "anthropic":
             r = httpx.post(p["url"],
-                headers={
-                    "x-api-key": api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
+                           headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
                 json={
                     "model": model,
                     "max_tokens": max_tokens,
                     "system": final_system,
                     "messages": [{"role": "user", "content": prompt}],
-                },
+            },
                 timeout=60.0)
             r.raise_for_status()
             text = r.json()["content"][0]["text"]
         elif provider == "openai":
             r = httpx.post(p["url"],
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
+                           headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
                 json={
                     "model": model,
                     "max_tokens": max_tokens,
@@ -121,7 +130,7 @@ def call(provider: str, prompt: str, *, model: str | None = None,
                         {"role": "system", "content": final_system},
                         {"role": "user", "content": prompt},
                     ],
-                },
+            },
                 timeout=60.0)
             r.raise_for_status()
             text = r.json()["choices"][0]["message"]["content"]
@@ -132,7 +141,8 @@ def call(provider: str, prompt: str, *, model: str | None = None,
                    f"http_{e.response.status_code}")
         return f"error: {provider} returned {e.response.status_code}"
     except Exception as e:
-        _log_usage(provider, model, len(prompt), 0, time.time() - t0, "exception")
+        _log_usage(provider, model, len(prompt), 0,
+                   time.time() - t0, "exception")
         return f"error: {type(e).__name__}: {e}"
 
     duration = time.time() - t0

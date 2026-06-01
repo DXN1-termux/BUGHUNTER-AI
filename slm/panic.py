@@ -12,9 +12,13 @@ Neither is a substitute for full-disk encryption. But if an adversary
 has physical access and your disk is plaintext, hard shred helps.
 """
 from __future__ import annotations
-import os, pathlib, secrets, shutil
+import os
+import pathlib
+import secrets
+import shutil
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 
 
 def _random_overwrite(path: pathlib.Path, passes: int = 3) -> None:

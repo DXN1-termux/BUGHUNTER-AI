@@ -16,13 +16,17 @@ Writes:  config.toml, scope.yaml, guardrails.toml, system.md (copy),
          ~/.slm/MODEL_URL  (the user-chosen download URL, or blank)
 """
 from __future__ import annotations
-import os, pathlib, shutil, textwrap
+import os
+import pathlib
+import shutil
+import textwrap
 from dataclasses import dataclass
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 PKG_PROMPTS = pathlib.Path(__file__).parent.parent / "prompts"
 console = Console()
 THEME = {
@@ -127,13 +131,18 @@ def _size_options() -> list[tuple[str, str, str]]:
 
 
 # ---------------------------------------------------------- prompt helpers
-def _get_input(prompt: str, default: str = "", validator: callable = None, error_msg: str = "Invalid input") -> str:
+def _get_input(
+        prompt: str,
+        default: str = "",
+        validator: callable = None,
+        error_msg: str = "Invalid input") -> str:
     """Centralized input helper with optional validation."""
     while True:
         ans = _ask(prompt, default)
         if not validator or validator(ans):
             return ans
         console.print(f"[red]{error_msg}[/red]")
+
 
 def _ask(prompt: str, default: str = "") -> str:
     shown = f"{prompt} [{default}]: " if default else f"{prompt}: "
@@ -164,21 +173,28 @@ def _ask_choice(prompt: str, options: list[str], default_idx: int = 0) -> int:
                 return idx
         except ValueError:
             pass
-        console.print(f"[{THEME['error']}]Please pick a number from the list.[/]")
+        console.print(
+            f"[{THEME['error']}]Please pick a number from the list.[/]")
 
 
 # ---------------------------------------------------------- sections
 def _section(title: str) -> None:
     console.print()
-    console.print(Panel(f"[{THEME['section']}]{title.upper()}[/]", expand=False))
+    console.print(
+        Panel(f"[{THEME['section']}]{title.upper()}[/]", expand=False))
 
 
 def _detect_tier() -> str:
     try:
         from slm.device import detect
         d = detect()
-        console.print(f"[dim]detected: {d.platform}, {d.ram_mb} MB RAM, "
-                      f"{d.cores} cores, gpu={d.has_gpu} → tier [bold]{d.tier}[/bold][/dim]")
+        console.print(
+            f"[dim]detected: {
+                d.platform}, {
+                d.ram_mb} MB RAM, " f"{
+                d.cores} cores, gpu={
+                    d.has_gpu} → tier [bold]{
+                        d.tier}[/bold][/dim]")
         return d.tier
     except Exception:
         return "mobile"
@@ -194,7 +210,7 @@ def run_setup():
 
     SLM_HOME.mkdir(parents=True, exist_ok=True)
 
-    # 1. DEVICE TIER -----------------------------------------------------------
+    # 1. DEVICE TIER ---------------------------------------------------------
     _section("1. device tier")
     auto = _detect_tier()
     tier_options = ["auto-detect (recommended)", "mobile (phone / low-end)",
@@ -206,7 +222,8 @@ def run_setup():
 
     # 2. MODEL ----------------------------------------------------------------
     _section("2. model size")
-    console.print("[bold]bugbounty-ai-v2[/bold] (MIT) — choose capability vs. speed.\n")
+    console.print(
+        "[bold]bugbounty-ai-v2[/bold] (MIT) — choose capability vs. speed.\n")
 
     sizes = _size_options()
     size_display = []
@@ -221,39 +238,45 @@ def run_setup():
             default_size_idx = i
         size_display.append(f"{disp}\n      [dim]{rec}[/dim]")
 
-    size_pick = _ask_choice("choose model size", size_display, default_size_idx)
+    size_pick = _ask_choice("choose model size",
+                            size_display, default_size_idx)
     chosen_size = sizes[size_pick][0]
 
     _section("3. model quant")
-    console.print(f"For [cyan]{chosen_size}[/cyan] on tier [cyan]{resolved_tier}[/cyan]:\n")
+    console.print(
+        f"For [cyan]{chosen_size}[/cyan] on tier [cyan]{resolved_tier}[/cyan]:\n")
 
-    chosen = next((m for m in CATALOG
-                   if m.base_size == chosen_size and m.tier == resolved_tier), None)
+    chosen = next((m for m in CATALOG if m.base_size ==
+                  chosen_size and m.tier == resolved_tier), None)
     if chosen is None:
         chosen = next(m for m in CATALOG if m.base_size == chosen_size)
     console.print(f"  selected: [cyan]{chosen.display}[/cyan]")
     console.print(f"  estimated speed: [green]{chosen.tok_s_estimate}[/green]")
-    console.print(f"  disk space needed: [yellow]~{chosen.size_gb:.1f} GB[/yellow]\n")
+    console.print(
+        f"  disk space needed: [yellow]~{chosen.size_gb:.1f} GB[/yellow]\n")
 
     gguf_url = _get_input(
         "GGUF download URL (leave blank to place the file manually later)",
         default="",
-        validator=lambda x: not x or x.startswith(("http://", "https://", "ftp://")),
+        validator=lambda x: not x or x.startswith(
+            ("http://", "https://", "ftp://")),
         error_msg="URL must start with http://, https://, or ftp://"
     )
     (SLM_HOME / "MODEL_URL").write_text(gguf_url)
     model_filename = _ask("filename for the GGUF",
                           default=chosen.default_filename)
 
-    # 4. AGENTIC FEATURES ------------------------------------------------------
+    # 4. AGENTIC FEATURES ----------------------------------------------------
     _section("4. agentic features")
     console.print(
         "These make the small model behave more like a big one — "
         "at the cost of tokens and latency.\n")
-    skill_rag   = _ask_bool("enable skill RAG (inject relevant skills per turn)", True)
-    plan_first  = _ask_bool("require <plan> on first turn (plan-then-execute)", True)
-    few_shot    = _ask_bool("few-shot from past successful sessions", True)
-    context_cp  = _ask_bool("context compression when near n_ctx", True)
+    skill_rag = _ask_bool(
+        "enable skill RAG (inject relevant skills per turn)", True)
+    plan_first = _ask_bool(
+        "require <plan> on first turn (plan-then-execute)", True)
+    few_shot = _ask_bool("few-shot from past successful sessions", True)
+    context_cp = _ask_bool("context compression when near n_ctx", True)
     if resolved_tier == "mobile":
         reflect = "off"
         vote = 1
@@ -263,7 +286,8 @@ def run_setup():
         reflect_on = _ask_bool("self-reflection before <final> answers", True)
         reflect = "on" if reflect_on else "off"
         if resolved_tier == "workstation":
-            vote_on = _ask_bool("vote-of-3 (sample 3 rollouts, pick majority)", False)
+            vote_on = _ask_bool(
+                "vote-of-3 (sample 3 rollouts, pick majority)", False)
             vote = 3 if vote_on else 1
         else:
             vote = 1
@@ -273,18 +297,20 @@ def run_setup():
         "or it hits a checkpoint)", False)
 
     max_tool_calls = _ask("max tool calls per turn", default="90")
-    shell_timeout  = _ask("shell command timeout (seconds)", default="30")
-    memory_limit   = _ask("memory limit (GB) for backend", default="4")
-    log_level      = _ask("default log level", default="INFO")
+    shell_timeout = _ask("shell command timeout (seconds)", default="30")
+    memory_limit = _ask("memory limit (GB) for backend", default="4")
+    log_level = _ask("default log level", default="INFO")
 
-    # 5. SCOPE -----------------------------------------------------------------
+    # 5. SCOPE ---------------------------------------------------------------
     _section("5. authorized scope")
     console.print(
         "Scope gates every network tool. Nothing fires against a target "
         "not listed here.\n")
     domains: list[str] = []
     while True:
-        d = _ask("add a domain (blank to stop; use *.example.com for wildcard)", "")
+        d = _ask(
+            "add a domain (blank to stop; use *.example.com for wildcard)",
+            "")
         if not d:
             break
         domains.append(d)
@@ -311,9 +337,9 @@ def run_setup():
     snow_account = snow_user = snow_role = snow_wh = ""
     if snow:
         snow_account = _ask("account identifier (e.g. acme-xy12345)", "")
-        snow_user    = _ask("user", os.environ.get("USER", ""))
-        snow_role    = _ask("role", "PUBLIC")
-        snow_wh      = _ask("warehouse", "COMPUTE_WH")
+        snow_user = _ask("user", os.environ.get("USER", ""))
+        snow_role = _ask("role", "PUBLIC")
+        snow_wh = _ask("warehouse", "COMPUTE_WH")
 
     # 8. WRITE FILES ----------------------------------------------------------
     _section("8. writing config")
@@ -347,7 +373,8 @@ def _fallback_filename(model: ModelChoice) -> str:
     idx = tier_order.index(model.tier) if model.tier in tier_order else 0
     fallback_tier = tier_order[max(0, idx - 1)]
     fallback_model = next(
-        (m for m in CATALOG if m.tier == fallback_tier and m.base_size == model.base_size),
+        (m for m in CATALOG if m.tier ==
+         fallback_tier and m.base_size == model.base_size),
         model,
     )
     return fallback_model.default_filename
@@ -360,15 +387,19 @@ def _write_files(**ctx):
 
     chosen_model = ctx['model']
     fb_filename = _fallback_filename(chosen_model)
-    # Same-size variants for each tier (so tier sections stay consistent with chosen size)
+    # Same-size variants for each tier (so tier sections stay consistent with
+    # chosen size)
     mobile_model = next(
-        (m for m in CATALOG if m.tier == "mobile" and m.base_size == chosen_model.base_size),
+        (m for m in CATALOG if m.tier ==
+         "mobile" and m.base_size == chosen_model.base_size),
         chosen_model)
     desktop_model = next(
-        (m for m in CATALOG if m.tier == "desktop" and m.base_size == chosen_model.base_size),
+        (m for m in CATALOG if m.tier ==
+         "desktop" and m.base_size == chosen_model.base_size),
         chosen_model)
     workstation_model = next(
-        (m for m in CATALOG if m.tier == "workstation" and m.base_size == chosen_model.base_size),
+        (m for m in CATALOG if m.tier ==
+         "workstation" and m.base_size == chosen_model.base_size),
         chosen_model)
 
     config = textwrap.dedent(f"""\
@@ -438,8 +469,8 @@ def _write_files(**ctx):
 
     scope = (
         "programs:\n" + _yaml_list(ctx["programs"]) +
-        "domains:\n"  + _yaml_list(ctx["domains"]) +
-        "ips:\n"      + _yaml_list(ctx["ips"])
+        "domains:\n" + _yaml_list(ctx["domains"]) +
+        "ips:\n" + _yaml_list(ctx["ips"])
     )
     (SLM_HOME / "scope.yaml").write_text(scope)
 
@@ -455,7 +486,8 @@ def _write_files(**ctx):
     if not sys_md.exists():
         candidates = [
             PKG_PROMPTS / "system.md",                          # editable
-            pathlib.Path(__file__).parent / "prompts" / "system.md",  # wheel (slm/prompts)
+            pathlib.Path(__file__).parent / "prompts" /
+            "system.md",  # wheel (slm/prompts)
         ]
         src = next((c for c in candidates if c.exists()), None)
         if src:
@@ -466,7 +498,8 @@ def _write_files(**ctx):
         from slm.init import seed_skills
         n = seed_skills()
         if n:
-            console.print(f"[dim]  seeded {n} example skill(s) into {SLM_HOME}/skills/[/dim]")
+            console.print(
+                f"[dim]  seeded {n} example skill(s) into {SLM_HOME}/skills/[/dim]")
     except Exception:
         pass
 
@@ -474,9 +507,10 @@ def _write_files(**ctx):
     want = [t for t, v in ctx["tools_wanted"].items() if v]
     if want:
         (SLM_HOME / "TOOLS_WANTED").write_text("\n".join(want) + "\n")
-        console.print(f"[dim]recon tools you opted into: "
-                      f"{', '.join(want)} — install via `slm install-tools`[/dim]")
+        console.print(
+            f"[dim]recon tools you opted into: " f"{
+                ', '.join(want)} — install via `slm install-tools`[/dim]")
 
-    console.print(f"[green]  wrote[/green]  {SLM_HOME/'config.toml'}")
-    console.print(f"[green]  wrote[/green]  {SLM_HOME/'scope.yaml'}")
-    console.print(f"[green]  wrote[/green]  {SLM_HOME/'guardrails.toml'}")
+    console.print(f"[green]  wrote[/green]  {SLM_HOME / 'config.toml'}")
+    console.print(f"[green]  wrote[/green]  {SLM_HOME / 'scope.yaml'}")
+    console.print(f"[green]  wrote[/green]  {SLM_HOME / 'guardrails.toml'}")

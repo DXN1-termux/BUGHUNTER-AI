@@ -1,9 +1,13 @@
 """First-run config writer."""
 from __future__ import annotations
-import os, pathlib, shutil, tempfile
+import os
+import pathlib
+import shutil
+import tempfile
 from rich.console import Console
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 PKG_PROMPTS = pathlib.Path(__file__).parent.parent / "prompts"
 console = Console()
 
@@ -31,10 +35,12 @@ def seed_skills() -> int:
     skills_dir = SLM_HOME / "skills"
     skills_dir.mkdir(parents=True, exist_ok=True)
     candidate_dirs = [
-        pathlib.Path(__file__).parent.parent / "skills",   # editable install / git clone
+        pathlib.Path(__file__).parent.parent /
+        "skills",   # editable install / git clone
         pathlib.Path(__file__).parent / "skills",          # wheel install
     ]
-    shipped = next((d for d in candidate_dirs if d.exists() and d.is_dir()), None)
+    shipped = next(
+        (d for d in candidate_dirs if d.exists() and d.is_dir()), None)
     n = 0
     if shipped:
         for src in shipped.glob("*.py"):
@@ -116,12 +122,13 @@ enabled = false
                       "programs: []\ndomains: []\nips: []\n")
     if not (SLM_HOME / "guardrails.toml").exists():
         _atomic_write(SLM_HOME / "guardrails.toml",
-            "max_tool_calls_per_turn = 90\n"
-            "shell_timeout_sec = 30\n"
-            "shell_output_cap_bytes = 2048\n"
-            "fetch_output_cap_bytes = 4096\n")
+                      "max_tool_calls_per_turn = 90\n"
+                      "shell_timeout_sec = 30\n"
+                      "shell_output_cap_bytes = 2048\n"
+                      "fetch_output_cap_bytes = 4096\n")
     skills_copied = seed_skills()
     console.print(f"[green]initialized {SLM_HOME}[/green]")
     if skills_copied:
-        console.print(f"  seeded {skills_copied} example skill(s) into {SLM_HOME}/skills/")
+        console.print(
+            f"  seeded {skills_copied} example skill(s) into {SLM_HOME}/skills/")
     console.print("  Edit scope.yaml before running any network tool.")

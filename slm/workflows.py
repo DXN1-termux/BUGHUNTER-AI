@@ -31,11 +31,14 @@ Workflows = deterministic task chains (no LLM needed per step). Agent mode
 when they want it, autonomy when they don't.
 """
 from __future__ import annotations
-import os, pathlib, re
+import os
+import pathlib
+import re
 from typing import Any
 import yaml
 
-SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
+SLM_HOME = pathlib.Path(os.environ.get(
+    "SLM_HOME", pathlib.Path.home() / ".slm"))
 WORKFLOWS = SLM_HOME / "workflows"
 
 _SUBST = re.compile(r"\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}")
@@ -103,7 +106,8 @@ def execute(name: str, params: dict, dispatch_fn) -> list[dict]:
         tid = task["id"]
         deps = task.get("deps", [])
         if any(context.get(d, {}).get("status") == "failed" for d in deps):
-            results.append({"id": tid, "status": "skipped", "reason": "upstream failed"})
+            results.append({"id": tid, "status": "skipped",
+                           "reason": "upstream failed"})
             context[tid] = {"status": "skipped", "result": ""}
             continue
 
@@ -111,11 +115,13 @@ def execute(name: str, params: dict, dispatch_fn) -> list[dict]:
         tool = task["tool"]
         try:
             result = dispatch_fn(tool, args)
-            status = "failed" if (isinstance(result, str) and result.startswith("error")) else "done"
+            status = "failed" if (isinstance(result, str)
+                                  and result.startswith("error")) else "done"
         except Exception as e:
             result = f"error: {type(e).__name__}: {e}"
             status = "failed"
-        record = {"id": tid, "title": task.get("title", ""), "status": status, "result": result}
+        record = {"id": tid, "title": task.get(
+            "title", ""), "status": status, "result": result}
         results.append(record)
         context[tid] = record
 

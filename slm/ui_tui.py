@@ -52,7 +52,8 @@ class SlmApp(App):
             self.log.write(f"[dim]{e.kind}[/dim] {e.content[:400]}")
 
     def action_freeze(self):
-        import pathlib, os
+        import pathlib
+        import os
         (pathlib.Path(os.environ.get("SLM_HOME",
                                      pathlib.Path.home() / ".slm")) / "FREEZE").touch()
         self.log.write("[red]FREEZE set[/red]")
