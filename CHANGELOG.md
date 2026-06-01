@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.3.2] — 2026-06-01
+## [2.4.0] — 2026-06-01
 
 ### ✨ Added
 - **Setup Wizard Upgrade**: Improved device detection, input validation (URLs), and advanced configuration options (memory limit, log level).
@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Exception Stability**: Fixed `HardBlockError` exception hierarchy issues causing test failures.
 - **Refusal Detection**: Fixed regex patterns in `slm/refusal.py` to correctly identify agent refusals.
 - **Test Suite**: Stabilized tests by refactoring `tests/test_safety.py` and adding quarantine-bypass test fixtures.
+
+----------
+----------
+----------
 
 ## [2.3.1] — 2026-06-01
 
