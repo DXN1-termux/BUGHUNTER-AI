@@ -8,9 +8,21 @@ from slm.agent import Agent
 
 class SlmApp(App):
     CSS = """
-    #side  { width: 32; border: solid grey; }
-    #log   { border: solid grey; }
-    #input { dock: bottom; }
+    Screen {
+        background: #111;
+        color: #ddd;
+    }
+    Header {
+        background: #222;
+        color: #0af;
+    }
+    Footer {
+        background: #222;
+        color: #aaa;
+    }
+    #side  { width: 32; border: solid #333; background: #1a1a1a; }
+    #log   { border: solid #333; background: #151515; }
+    #input { dock: bottom; border: solid #444; }
     """
     BINDINGS = [("ctrl+c", "quit"), ("f4", "freeze")]
 

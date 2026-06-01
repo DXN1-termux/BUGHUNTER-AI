@@ -25,6 +25,13 @@ from rich.table import Table
 SLM_HOME = pathlib.Path(os.environ.get("SLM_HOME", pathlib.Path.home() / ".slm"))
 PKG_PROMPTS = pathlib.Path(__file__).parent.parent / "prompts"
 console = Console()
+THEME = {
+    "header": "bold cyan on blue",
+    "section": "bold blue",
+    "accent": "cyan",
+    "error": "red",
+    "dim": "dim",
+}
 
 
 # ---------------------------------------------------------- model catalog
@@ -120,6 +127,14 @@ def _size_options() -> list[tuple[str, str, str]]:
 
 
 # ---------------------------------------------------------- prompt helpers
+def _get_input(prompt: str, default: str = "", validator: callable = None, error_msg: str = "Invalid input") -> str:
+    """Centralized input helper with optional validation."""
+    while True:
+        ans = _ask(prompt, default)
+        if not validator or validator(ans):
+            return ans
+        console.print(f"[red]{error_msg}[/red]")
+
 def _ask(prompt: str, default: str = "") -> str:
     shown = f"{prompt} [{default}]: " if default else f"{prompt}: "
     try:
@@ -136,26 +151,26 @@ def _ask_bool(prompt: str, default: bool = True) -> bool:
 
 
 def _ask_choice(prompt: str, options: list[str], default_idx: int = 0) -> int:
-    table = Table(show_header=False, box=None)
+    table = Table(show_header=False, box=None, padding=(0, 1))
     for i, opt in enumerate(options):
-        marker = "[cyan]*[/cyan]" if i == default_idx else " "
-        table.add_row(f"  {marker} [{i}]", opt)
+        marker = f"[{THEME['accent']}]{'>'}[/]" if i == default_idx else " "
+        table.add_row(f"{marker} [{i}]", opt)
     console.print(table)
     while True:
-        raw = _ask(prompt, str(default_idx))
+        raw = _ask("Select option", str(default_idx))
         try:
             idx = int(raw)
             if 0 <= idx < len(options):
                 return idx
         except ValueError:
             pass
-        console.print("[red]pick a number from the list[/red]")
+        console.print(f"[{THEME['error']}]Please pick a number from the list.[/]")
 
 
 # ---------------------------------------------------------- sections
 def _section(title: str) -> None:
     console.print()
-    console.print(Panel.fit(f"[bold]{title}[/bold]", style="blue"))
+    console.print(Panel(f"[{THEME['section']}]{title.upper()}[/]", expand=False))
 
 
 def _detect_tier() -> str:
@@ -220,9 +235,12 @@ def run_setup():
     console.print(f"  estimated speed: [green]{chosen.tok_s_estimate}[/green]")
     console.print(f"  disk space needed: [yellow]~{chosen.size_gb:.1f} GB[/yellow]\n")
 
-    gguf_url = _ask(
+    gguf_url = _get_input(
         "GGUF download URL (leave blank to place the file manually later)",
-        default="")
+        default="",
+        validator=lambda x: not x or x.startswith(("http://", "https://", "ftp://")),
+        error_msg="URL must start with http://, https://, or ftp://"
+    )
     (SLM_HOME / "MODEL_URL").write_text(gguf_url)
     model_filename = _ask("filename for the GGUF",
                           default=chosen.default_filename)
@@ -256,6 +274,8 @@ def run_setup():
 
     max_tool_calls = _ask("max tool calls per turn", default="90")
     shell_timeout  = _ask("shell command timeout (seconds)", default="30")
+    memory_limit   = _ask("memory limit (GB) for backend", default="4")
+    log_level      = _ask("default log level", default="INFO")
 
     # 5. SCOPE -----------------------------------------------------------------
     _section("5. authorized scope")
@@ -302,7 +322,8 @@ def run_setup():
         skill_rag=skill_rag, plan_first=plan_first, few_shot=few_shot,
         reflect=reflect, vote=vote, context_compress=context_cp,
         autonomous=autonomous, max_tool_calls=max_tool_calls,
-        shell_timeout=shell_timeout, domains=domains, ips=ips,
+        shell_timeout=shell_timeout, memory_limit=memory_limit,
+        log_level=log_level, domains=domains, ips=ips,
         programs=programs, tools_wanted=tools_wanted, snow=snow,
         snow_account=snow_account, snow_user=snow_user,
         snow_role=snow_role, snow_wh=snow_wh,
@@ -359,6 +380,7 @@ def _write_files(**ctx):
         name     = "{ctx['model'].name}"
         license  = "MIT"
         backend  = "llama_cpp"
+        memory_limit = {ctx['memory_limit']}
 
         [model.mobile]
         path       = "{models_dir}/{mobile_model.default_filename}"
@@ -384,6 +406,7 @@ def _write_files(**ctx):
         [server]
         host = "127.0.0.1"
         port = 8081
+        log_level = "{ctx['log_level']}"
 
         [ui]
         mode = "repl"

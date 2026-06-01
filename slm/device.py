@@ -94,9 +94,24 @@ def _platform() -> str:
     )
 
 
+def _cpu_count() -> int:
+    # Use os.cpu_count() as primary
+    count = os.cpu_count()
+    if count:
+        return count
+    # Fallback to /proc/cpuinfo for Linux
+    try:
+        with open("/proc/cpuinfo") as f:
+            return sum(1 for line in f if line.startswith("processor"))
+    except OSError:
+        pass
+    # Conservative fallback
+    return 1
+
+
 def detect() -> Device:
     ram_mb = _ram_mb()
-    cores = os.cpu_count() or 1
+    cores = _cpu_count()
     has_gpu = _has_gpu()
     plat = _platform()
 
