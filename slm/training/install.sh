@@ -23,7 +23,7 @@ preflight() {
   [ "$(uname -o 2>/dev/null)" = "Android" ] || err "Not running on Android/Termux"
   [ -n "${PREFIX:-}" ] && [ -d "$PREFIX/bin" ]   || err "Termux \$PREFIX missing — install Termux from F-Droid"
   case "$(uname -m)" in aarch64|arm64) :;; *) err "Need aarch64, found $(uname -m)";; esac
-  local free_mb; free_mb=$(df -m "$HOME" | awk 'NR==2{print $4}')
+  local free_mb; free_mb=$(df -k "$HOME" | awk 'NR==2{print int($4/1024)}')
   [ "$free_mb" -ge 2500 ] || err "Need ≥2.5GB free in \$HOME (have ${free_mb}MB)"
   command -v curl >/dev/null || pkg install -y curl
   curl -fsS --max-time 10 https://github.com >/dev/null || err "No internet / github unreachable"
